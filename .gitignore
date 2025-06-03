@@ -23,15 +23,9 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Output temporanei
-*.npy
-*.npz
-*.log
+
 
 # Dati di test e output
-/incoming_data/
-/data/
-/output/
 /*.bag
 
 # File di configurazione personali
