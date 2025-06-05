@@ -63,45 +63,34 @@ class PoseDataset3D(Dataset):
         self.label_map = label_map
         self.augment = augment
 
-        prefix_map = {
-            'flessione_indietro_dx': '1d_',
-            'flessione_indietro_sx': '1s_',
-            'flessione_avanti_dx': '2d_',
-            'flessione_avanti_sx': '2s_',
-            'estensione_gamba_dx': '4d_',
-            'estensione_gamba_sx': '4s_'
-        }
+        for base_label_name in ['flessione_indietro', 'flessione_avanti', 'estensione_gamba', 'squat']:
+            label = label_map[base_label_name]
+            folder = os.path.join(data_dir, base_label_name)
+            if not os.path.exists(folder):
+                print(f"⚠️ Folder missing: {folder}")
+                continue
 
-        for base_label_name in ['flessione_indietro', 'flessione_avanti', 'estensione_gamba']:
-            for side in ['dx', 'sx']:
-                label_name = f"{base_label_name}_{side}"
-                label = label_map[label_name]
-                folder = os.path.join(data_dir, base_label_name)
-                if not os.path.exists(folder):
-                    print(f"⚠️ Folder missing: {folder}")
-                    continue
+            for fname in os.listdir(folder):
+                if fname.endswith('.npy'):
+                    data = np.load(os.path.join(folder, fname))
+                    if data.ndim != 3 or data.shape[2] != 3:
+                        continue
 
-                prefix = prefix_map[label_name]
-                for fname in os.listdir(folder):
-                    if fname.startswith(prefix) and fname.endswith('.npy'):
-                        data = np.load(os.path.join(folder, fname))
-                        if data.ndim != 3 or data.shape[2] != 3:
-                            continue
+                    if data.shape[0] >= seq_len:
+                        data = data[:seq_len]
+                    else:
+                        padding = np.zeros((seq_len - data.shape[0], *data.shape[1:]))
+                        data = np.concatenate([data, padding], axis=0)
 
-                        if data.shape[0] >= seq_len:
-                            data = data[:seq_len]
-                        else:
-                            padding = np.zeros((seq_len - data.shape[0], *data.shape[1:]))
-                            data = np.concatenate([data, padding], axis=0)
+                    mean = data.mean(axis=1, keepdims=True)
+                    std = data.std(axis=1, keepdims=True) + 1e-6
+                    data = (data - mean) / std
+                    data = align_pose_down(data)
+                    data = data.reshape(seq_len, -1).astype(np.float32)
+                    self.samples.append(data)
+                    self.labels.append(label)
 
-                        mean = data.mean(axis=1, keepdims=True)
-                        std = data.std(axis=1, keepdims=True) + 1e-6
-                        data = (data - mean) / std
-                        data = align_pose_down(data)
-                        data = data.reshape(seq_len, -1).astype(np.float32)
-                        self.samples.append(data)
-                        self.labels.append(label)
-
+       
     def __len__(self):
         return len(self.samples)
 

@@ -1,4 +1,3 @@
-// /Application/RecordPose.cs
 using UnityEngine;
 using System.Diagnostics;
 using System.Collections;
@@ -11,19 +10,25 @@ public class RecordPose : MonoBehaviour
 
     private string bagFilePath;
     private string npyFilePath;
-    private string pythonScriptPath;
+    private string pythonExtractPath;
+    private string pythonExtractExe;
+    private string pythonServerExe;
+    private string serverScriptPath;
 
     void Start()
     {
         string projectPath = Directory.GetParent(Application.dataPath).FullName;
         string dataPath = Path.Combine(projectPath, "data");
-        string landmarkPath = Path.Combine(projectPath, "landmark");
+        string landmarkPath = Path.Combine(projectPath, "landmark_extraction");
+        string poseDetectorPath = Path.Combine(projectPath, "PoseDetector");
         string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
-        // Es: data/20250603_150015.bag
         bagFilePath = Path.Combine(dataPath, $"{timestamp}.bag");
         npyFilePath = Path.Combine(dataPath, $"{timestamp}.npy");
-        pythonScriptPath = Path.Combine(landmarkPath, "extract_landmarks.py");
+        pythonExtractPath = Path.Combine(landmarkPath, "extract_landmarks.py");
+        pythonExtractExe = Path.Combine(landmarkPath, "mp_env", "Scripts", "python.exe");
+        pythonServerExe = @"C:\Users\markd\anaconda3\python.exe";
+        serverScriptPath = Path.Combine(poseDetectorPath, "server.py");
     }
 
     void Update()
@@ -44,16 +49,17 @@ public class RecordPose : MonoBehaviour
         UnityEngine.Debug.Log("✅ Registrazione completata.");
         UnityEngine.Debug.Log("📤 Lancio script Python per landmark...");
 
-        RunPythonScript(bagFilePath, npyFilePath, isLeftLeg ? "left" : "right");
+        RunPythonScript(pythonExtractExe, pythonExtractPath, bagFilePath, npyFilePath, isLeftLeg ? "left" : "right");
+
+        UnityEngine.Debug.Log("📈 Lancio server di inferenza...");
+        RunServerScript(pythonServerExe, serverScriptPath, npyFilePath);
 
         recording = false;
     }
 
     IEnumerator RecordRealsenseBag()
     {
-        // Simulazione: qui dovresti usare `rs-record.exe` o un plugin Unity RealSense
-        // Esempio se hai rs-record.exe installato:
-        string rsRecordPath = @"C:\Program Files\Intel RealSense SDK 2.0\tools\rs-record.exe";  // cambia path
+        string rsRecordPath = @"C:\Program Files\Intel RealSense SDK 2.0\tools\rs-record.exe";  // cambia path se serve
         string arguments = $"-o \"{bagFilePath}\"";
 
         ProcessStartInfo psi = new ProcessStartInfo
@@ -67,18 +73,16 @@ public class RecordPose : MonoBehaviour
 
         Process p = Process.Start(psi);
         UnityEngine.Debug.Log("Registrazione Realsense in corso...");
-        yield return new WaitForSeconds(5); // oppure attendi fine del processo p.WaitForExit()
-        p.Kill();
+        yield return new WaitForSeconds(5); // oppure attendi fine del processo con p.WaitForExit()
+        if (!p.HasExited) p.Kill();
     }
 
-    void RunPythonScript(string bagPath, string npyPath, string legSide)
+    void RunPythonScript(string pythonExe, string scriptPath, string bagPath, string npyPath, string legSide)
     {
-        string pythonPath = "python"; // oppure path assoluto a python
-
         ProcessStartInfo start = new ProcessStartInfo
         {
-            FileName = pythonPath,
-            Arguments = $"\"{pythonScriptPath}\" \"{bagPath}\" \"{npyPath}\" {legSide}",
+            FileName = pythonExe,
+            Arguments = $"\"{scriptPath}\" \"{bagPath}\" \"{npyPath}\" {legSide}",
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -97,5 +101,31 @@ public class RecordPose : MonoBehaviour
         process.WaitForExit();
 
         UnityEngine.Debug.Log($"✅ Landmark extraction completata. Salvato in {npyPath}");
+    }
+
+    void RunServerScript(string pythonExe, string scriptPath, string npyPath)
+    {
+        ProcessStartInfo start = new ProcessStartInfo
+        {
+            FileName = pythonExe,
+            Arguments = $"\"{scriptPath}\" \"{npyPath}\"",
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+
+        Process process = new Process();
+        process.StartInfo = start;
+
+        process.OutputDataReceived += (sender, args) => UnityEngine.Debug.Log(args.Data);
+        process.ErrorDataReceived += (sender, args) => UnityEngine.Debug.LogError(args.Data);
+
+        process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+        process.WaitForExit();
+
+        UnityEngine.Debug.Log($"✅ Inference completata su {npyPath}");
     }
 }

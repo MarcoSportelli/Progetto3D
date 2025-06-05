@@ -14,8 +14,8 @@ import mediapipe as mp
 #output_path = sys.argv[2]
 #leg = sys.argv[3].lower()
 
-bag_path = r"C:\Users\markd\Desktop\Progetto3D\landmark_extraction\test.bag"  # Cambia con il tuo file
-output_path = r"C:\Users\markd\Desktop\Progetto3D\incoming_data\output.npy"
+bag_path = "3s_test.bag"  # Cambia con il tuo file
+output_path = "../incoming_data/output.npy"
 leg = "left"  
 
 if leg not in ["left", "right"]:
@@ -84,9 +84,9 @@ try:
         color_image = np.asanyarray(color_frame.get_data())
         depth_image = np.asanyarray(depth_frame.get_data())
 
-        # === Maschera depth (300-2000mm) ===
+        # === Maschera depth (0-3000mm) ===
         depth_in_mm = depth_image.astype(np.uint16)
-        mask = np.where((depth_in_mm > 300) & (depth_in_mm < 2000), 255, 0).astype(np.uint8)
+        mask = np.where((depth_in_mm > 0) & (depth_in_mm < 3000), 255, 0).astype(np.uint8)
         kernel = np.ones((5, 5), np.uint8)
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
         masked = cv2.bitwise_and(color_image, color_image, mask=mask)
@@ -116,7 +116,7 @@ finally:
 # === Salvataggio ===
 if collected_frames:
     arr = np.array(collected_frames)  # [frame, 5, 3]
-    np.save(output_path, arr)
+    np.save(output_path, arr) 
     print(f"✅ Salvato {arr.shape} in {output_path}")
 else:
     print("❌ Nessun frame utile trovato.")

@@ -5,25 +5,28 @@ import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import Counter
+from sklearn.model_selection import StratifiedShuffleSplit
 
 from models.dataset import PoseDataset3D
 from models.model import PoseTransformer3D
 from train import train_epoch, validate
 from utils import plot_confusion_matrix, print_class_distribution, plot_sample, plot_landmarks_matrix
+from sklearn.utils.class_weight import compute_class_weight
+from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.metrics import confusion_matrix
+
 
 LABEL_MAP = {
-    'flessione_indietro_dx': 0,
-    'flessione_indietro_sx': 1,
-    'flessione_avanti_dx': 2,
-    'flessione_avanti_sx': 3,
-    'estensione_gamba_dx': 4,
-    'estensione_gamba_sx': 5
+    'flessione_indietro': 0,
+    'flessione_avanti': 1,
+    'estensione_gamba': 2,
+    'squat': 3,
 }
 CLASS_NAMES = list(LABEL_MAP.keys())
 
 # Parametri principali
 DATA_DIR = 'data'
-SEQ_LEN = 50
+SEQ_LEN = 40
 BATCH_SIZE = 8
 NUM_EPOCHS = 50
 LR = 1e-3
@@ -33,26 +36,25 @@ MODEL_NAME = "model_weights.pt"
 # 1. Crea il dataset completo SENZA augmentation
 full_dataset = PoseDataset3D(DATA_DIR, LABEL_MAP, seq_len=SEQ_LEN, augment=False)
 
-# 2. Suddividi in train/val/test (es: 70% train, 15% val, 15% test)
-total_len = len(full_dataset)
-train_size = int(0.7 * total_len)
-val_size = int(0.15 * total_len)
-test_size = total_len - train_size - val_size
+labels = full_dataset.labels
+sss = StratifiedShuffleSplit(n_splits=1, test_size=0.3, random_state=42)
+train_idx, temp_idx = next(sss.split(np.zeros(len(labels)), labels))
 
-torch.manual_seed(42)  # Per riproducibilità
-indices = torch.randperm(total_len)
-train_indices = indices[:train_size]
-val_indices = indices[train_size:train_size+val_size]
-test_indices = indices[train_size+val_size:]
+# Ora splitta temp_idx in val e test, sempre stratificato
+temp_labels = [labels[i] for i in temp_idx]
+sss2 = StratifiedShuffleSplit(n_splits=1, test_size=0.5, random_state=42)
+val_idx, test_idx = next(sss2.split(np.zeros(len(temp_labels)), temp_labels))
+val_indices = [temp_idx[i] for i in val_idx]
+test_indices = [temp_idx[i] for i in test_idx]
 
 # Controllo overlap tra i set
-print("Overlap train/val:", len(set(train_indices.tolist()) & set(val_indices.tolist())))
-print("Overlap train/test:", len(set(train_indices.tolist()) & set(test_indices.tolist())))
-print("Overlap val/test:", len(set(val_indices.tolist()) & set(test_indices.tolist())))
+print("Overlap train/val:", len(set(train_idx) & set(val_indices)))
+print("Overlap train/test:", len(set(train_idx) & set(test_indices)))
+print("Overlap val/test:", len(set(val_indices) & set(test_indices)))
 
 # 3. Crea i dataset train/val/test con augmentation SOLO per il train
 train_dataset = torch.utils.data.Subset(
-    PoseDataset3D(DATA_DIR, LABEL_MAP, seq_len=SEQ_LEN, augment=True), train_indices)
+    PoseDataset3D(DATA_DIR, LABEL_MAP, seq_len=SEQ_LEN, augment=True), train_idx)
 val_dataset = torch.utils.data.Subset(
     PoseDataset3D(DATA_DIR, LABEL_MAP, seq_len=SEQ_LEN, augment=False), val_indices)
 test_dataset = torch.utils.data.Subset(
@@ -62,21 +64,20 @@ train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
-
 print_class_distribution(train_dataset, "train")
 print_class_distribution(val_dataset, "val")
 print_class_distribution(test_dataset, "test")
 
 
 
-plot_sample(train_dataset, 0, "Train sample (augmented)")
-plot_sample(val_dataset, 0, "Validation sample (no augmentation)")
+#plot_sample(train_dataset, 0, "Train sample (augmented)")
+#plot_sample(val_dataset, 0, "Validation sample (no augmentation)")
 
 
 
 # Esempio d'uso:
-plot_landmarks_matrix(train_dataset, idx=0, frame=0, title="Train sample - primo frame")
-plot_landmarks_matrix(val_dataset, idx=0, frame=0, title="Validation sample - primo frame")
+#plot_landmarks_matrix(train_dataset, idx=0, frame=0, title="Train sample - primo frame")
+#plot_landmarks_matrix(val_dataset, idx=0, frame=0, title="Validation sample - primo frame")
 
 # Determina la dimensione dell'input
 sample, _ = full_dataset[0]
@@ -91,8 +92,26 @@ num_classes = len(LABEL_MAP)
 class_counts = np.bincount([label for _, label in full_dataset], minlength=num_classes)
 weights = torch.tensor([sum(class_counts) / c if c > 0 else 1 for c in class_counts], dtype=torch.float).to(device)
 
+labels = full_dataset.labels
+sss = StratifiedShuffleSplit(n_splits=1, test_size=0.3, random_state=42)
+train_idx, temp_idx = next(sss.split(np.zeros(len(labels)), labels))
+
+# Ora splitta temp_idx in val e test, sempre stratificato
+temp_labels = [labels[i] for i in temp_idx]
+sss2 = StratifiedShuffleSplit(n_splits=1, test_size=0.5, random_state=42)
+val_idx, test_idx = next(sss2.split(np.zeros(len(temp_labels)), temp_labels))
+val_indices = [temp_idx[i] for i in val_idx]
+test_indices = [temp_idx[i] for i in test_idx]
+
+# Ora hai:
+# train_indices, val_indices, test_indices
+
+labels = [train_dataset.dataset.labels[i] for i in train_dataset.indices]
+class_weights = compute_class_weight('balanced', classes=np.unique(labels), y=labels)
+criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor(class_weights, dtype=torch.float32).to(device))
+
 # Loss, ottimizzatore e scheduler
-criterion = nn.CrossEntropyLoss(weight=weights)
+#criterion = nn.CrossEntropyLoss(weight=weights)
 optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
 
@@ -124,6 +143,23 @@ print(f"Test accuracy: {test_acc:.2f}")
 
 # Stampa la confusion matrix sul test set
 plot_confusion_matrix(model, test_loader, device, CLASS_NAMES)
+
+
+all_preds = []
+all_labels = []
+model.eval()
+with torch.no_grad():
+    for x, y in test_loader:
+        x = x.to(device)
+        y = y.to(device)
+        logits = model(x)
+        preds = torch.argmax(logits, dim=1)
+        all_preds.extend(preds.cpu().numpy())
+        all_labels.extend(y.cpu().numpy())
+
+cm = confusion_matrix(all_labels, all_preds)
+print("Confusion Matrix (righe=veri, colonne=predetti):")
+print(cm)
 
 # Plot delle curve di loss e accuracy
 plt.figure(figsize=(10,4))

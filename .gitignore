@@ -24,7 +24,7 @@ __pycache__/
 *.pyd
 
 
-
+landmark_extraction/**/*.bag
 # Dati di test e output
 /*.bag
 
