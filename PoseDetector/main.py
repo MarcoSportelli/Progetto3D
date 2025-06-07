@@ -26,7 +26,7 @@ CLASS_NAMES = list(LABEL_MAP.keys())
 
 # Parametri principali
 DATA_DIR = 'data'
-SEQ_LEN = 40
+SEQ_LEN = 50
 BATCH_SIZE = 8
 NUM_EPOCHS = 50
 LR = 1e-3
@@ -108,10 +108,10 @@ test_indices = [temp_idx[i] for i in test_idx]
 
 labels = [train_dataset.dataset.labels[i] for i in train_dataset.indices]
 class_weights = compute_class_weight('balanced', classes=np.unique(labels), y=labels)
-criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor(class_weights, dtype=torch.float32).to(device))
+#criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor(class_weights, dtype=torch.float32).to(device))
 
 # Loss, ottimizzatore e scheduler
-#criterion = nn.CrossEntropyLoss(weight=weights)
+criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
 

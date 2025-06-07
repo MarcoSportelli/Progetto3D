@@ -14,9 +14,9 @@ import mediapipe as mp
 #output_path = sys.argv[2]
 #leg = sys.argv[3].lower()
 
-bag_path = "3s_test.bag"  # Cambia con il tuo file
+bag_path = "test.bag"  # Cambia con il tuo file
 output_path = "../incoming_data/output.npy"
-leg = "left"  
+leg = "right"  # Cambia con "left" o "right"
 
 if leg not in ["left", "right"]:
     print("❌ Lato non valido: usa 'left' o 'right'")

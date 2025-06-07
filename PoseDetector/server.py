@@ -109,10 +109,10 @@ while True:
                 raise ValueError("Not enough frames.")
 
             # Estrai il movimento vero e proprio
-            movement = extract_movement_sequence(data_raw)
+            #movement = extract_movement_sequence(data_raw)
 
             # Preprocessing per il modello
-            input_data = preprocess(movement)
+            input_data = preprocess(data_raw)
             input_tensor = torch.from_numpy(np.expand_dims(input_data, axis=0))
             # Prediction
             with torch.no_grad():
@@ -122,12 +122,12 @@ while True:
                 print(f"[{fname}] → Predicted: {class_name}")
 
             # Feedback angolare
-            angles = [calculate_angle(f[0], f[1], f[2]) for f in movement]
+            angles = [calculate_angle(f[0], f[1], f[2]) for f in data_raw]
             if class_name.startswith("estensione"):
                 idx = int(np.argmax(angles))
             else:
                 idx = int(np.argmin(angles))
-            eval_frame = movement[idx]
+            eval_frame = data_raw[idx]
             eval_angle = angles[idx]
             feedback = get_feedback(class_name, eval_frame)
             if feedback:
