@@ -28,10 +28,10 @@ CLASS_NAMES = list(LABEL_MAP.keys())
 DATA_DIR = 'data'
 SEQ_LEN = 50
 BATCH_SIZE = 8
-NUM_EPOCHS = 50
-LR = 1e-3
+NUM_EPOCHS = 100
+LR = 5e-4
 WEIGHT_DECAY = 5e-4
-MODEL_NAME = "model_weights.pt"
+MODEL_NAME = "model_weights_final_v2.pt"
 
 # 1. Crea il dataset completo SENZA augmentation
 full_dataset = PoseDataset3D(DATA_DIR, LABEL_MAP, seq_len=SEQ_LEN, augment=False)
@@ -108,10 +108,10 @@ test_indices = [temp_idx[i] for i in test_idx]
 
 labels = [train_dataset.dataset.labels[i] for i in train_dataset.indices]
 class_weights = compute_class_weight('balanced', classes=np.unique(labels), y=labels)
-#criterion = torch.nn.CrossEntropyLoss(weight=torch.tensor(class_weights, dtype=torch.float32).to(device))
+criterion = nn.CrossEntropyLoss(weight=torch.tensor(class_weights, dtype=torch.float32).to(device))
 
 # Loss, ottimizzatore e scheduler
-criterion = nn.CrossEntropyLoss()
+#criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
 

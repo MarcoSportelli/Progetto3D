@@ -13,6 +13,7 @@ mp_env/
 # PyCharm
 .idea/
 
+
 # File di sistema
 .DS_Store
 Thumbs.db
@@ -25,6 +26,8 @@ __pycache__/
 
 
 landmark_extraction/**/*.bag
+
+landmark_extraction/**/*.mp4
 # Dati di test e output
 /*.bag
 

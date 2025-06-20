@@ -3,18 +3,37 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 import numpy as np
-
 def align_pose_down(data):
-    # data shape: (seq_len, n_landmarks, 3)
-    # Prendi il primo frame (o la media dei frame)
+    # Usa primo frame per allineare rispetto al corpo
     frame = data[0]
-    # Vettore tra primo e ultimo landmark
-    v = frame[-1, :2] - frame[0, :2]  # solo X,Y
-    # Angolo tra v e asse Y negativo
-    angle = np.arctan2(v[0], -v[1])  # atan2(x, -y)
+    origin = frame[0, :2]  # es: hip
+    target = frame[-1, :2]  # es: foot
+
+    v = target - origin
+    angle = np.arctan2(v[0], -v[1])  # rotazione verso basso
     angle_deg = np.degrees(angle)
-    # Ruota tutta la sequenza di -angle_deg gradi
-    return rotate_landmarks(data, -angle_deg)
+
+    # Sposta l'origine al primo punto
+    data_xy = data[..., :2] - origin
+    data_z = data[..., 2:]
+
+    # Ruota XY
+    R = rotation_matrix_z(-angle_deg)[:2, :2]
+    data_xy_rot = np.einsum('flc,cd->fld', data_xy, R)
+
+    # Ricostruisci con Z invariato
+    data_rot = np.concatenate([data_xy_rot, data_z], axis=-1)
+    return data_rot
+
+
+
+def normalize_skeleton(data):
+    # usa distanza hip-ankle del primo frame
+    hip = data[0, 0]
+    ankle = data[0, 2]
+    norm_len = np.linalg.norm(ankle - hip) + 1e-6
+    return data / norm_len
+
 
 def rotation_matrix_z(angle_deg):
     angle_rad = np.radians(angle_deg)
@@ -81,11 +100,13 @@ class PoseDataset3D(Dataset):
                     else:
                         padding = np.zeros((seq_len - data.shape[0], *data.shape[1:]))
                         data = np.concatenate([data, padding], axis=0)
-
-                    mean = data.mean(axis=1, keepdims=True)
-                    std = data.std(axis=1, keepdims=True) + 1e-6
-                    data = (data - mean) / std
+                    
                     data = align_pose_down(data)
+                    data = normalize_skeleton(data)
+
+                    mean = data.mean(axis=(0, 1), keepdims=True)
+                    std = data.std(axis=(0, 1), keepdims=True) + 1e-6
+                    data = (data - mean) / std
                     data = data.reshape(seq_len, -1).astype(np.float32)
                     self.samples.append(data)
                     self.labels.append(label)
@@ -101,13 +122,13 @@ class PoseDataset3D(Dataset):
         # Augmentation solo in training
         # In __getitem__ del dataset
         if self.augment:
-            angle = np.random.uniform(-45, 45) 
+            angle = np.random.uniform(-60, 60) 
             sample = rotate_landmarks(sample, angle)
             sample = scale_landmarks(sample, (0.5, 1.5)) 
             sample = translate_landmarks(sample, max_shift=0.5)
             sample = add_noise(sample, std=0.01)
             sample = time_shift(sample, max_shift=5)
-            sample = dropout_landmarks(sample, drop_prob=0.1)
+            sample = dropout_landmarks(sample, drop_prob=0.5)
         # Flatten per il modello
         sample = sample.reshape(self.seq_len, -1).astype(np.float32)
         return torch.tensor(sample), torch.tensor(label)

@@ -3,20 +3,32 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import numpy as np
 import matplotlib.pyplot as plt
 
-from models.dataset import align_pose_down
+from models.dataset import align_pose_down, normalize_skeleton
 
 # Carica un file .npy di esempio (modifica il path con uno dei tuoi file)
-sample_path = "./data/flessione_indietro/1s_1.npy"
+sample_path = "../incoming_data/output.npy"
+
+#sample_path = "data/flessione_indietro/1d_1.npy"
 data = np.load(sample_path)  # shape: (seq_len, n_landmarks, 3)
 
 # Prendi il primo frame
 
+#data = align_pose_down(data)
+#data = normalize_skeleton(data)
 
-#mean = data.mean(axis=1, keepdims=True)
-#std = data.std(axis=1, keepdims=True) + 1e-6
-#data = (data - mean) / std
+mean = data.mean(axis=(0, 1), keepdims=True)
+std = data.std(axis=(0, 1), keepdims=True) + 1e-6
+data = (data - mean) / std
+    
 frame_orig = data[0] 
+
+
 data_aligned = align_pose_down(data)
+data_aligned = normalize_skeleton(data_aligned)
+mean_aligned = data_aligned.mean(axis=(0, 1), keepdims=True)
+std_aligned = data_aligned.std(axis=(0, 1), keepdims=True) + 1e-6
+data_aligned = (data_aligned - mean_aligned) / std_aligned
+
 frame_aligned = data_aligned[0]
 
 

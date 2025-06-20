@@ -3,7 +3,7 @@ import numpy as np
 import time
 import os
 from models.model import PoseTransformer3D
-from models.dataset import align_pose_down
+from models.dataset import normalize_skeleton, align_pose_down, rotation_matrix_z
 
 LABEL_MAP = {
     'flessione_indietro': 0,
@@ -14,7 +14,7 @@ LABEL_MAP = {
 
 SEQ_LEN = 50
 INPUT_FEATURE_SIZE = 5 * 3  # 5 landmarks * (x, y, z)
-MODEL_PATH = "model_weights.pt"
+MODEL_PATH = "model_weights_final_v2.pt"
 WATCH_DIR = "../incoming_data"
 
 model = PoseTransformer3D(input_size=INPUT_FEATURE_SIZE, num_classes=len(LABEL_MAP))
@@ -63,18 +63,23 @@ def extract_movement_sequence(data):
     return movement
 
 def preprocess(data):
-    if data.shape[0] < SEQ_LEN:
+    if data.shape[0] > SEQ_LEN:
+        idx = np.linspace(0, data.shape[0] - 1, SEQ_LEN).astype(int)
+        data = data[idx]
+    # Se è più corta, pad con zeri
+    elif data.shape[0] < SEQ_LEN:
         pad = np.zeros((SEQ_LEN - data.shape[0], *data.shape[1:]))
         data = np.concatenate([data, pad], axis=0)
-    else:
-        data = data[:SEQ_LEN]
 
-    # Normalize each frame
-    mean = data.mean(axis=1, keepdims=True)
-    std = data.std(axis=1, keepdims=True) + 1e-6
+     
+    #data = align_pose_down(data)
+    data = normalize_skeleton(data)
+
+    mean = data.mean(axis=(0, 1), keepdims=True)
+    std = data.std(axis=(0, 1), keepdims=True) + 1e-6
     data = (data - mean) / std
-
-    data = align_pose_down(data)
+    
+    
     return data.reshape(SEQ_LEN, -1).astype(np.float32)
 
 def get_feedback(class_name, frame):
