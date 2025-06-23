@@ -116,7 +116,10 @@ finally:
 # === Salvataggio ===
 if collected_frames:
     arr = np.array(collected_frames)  # [frame, 5, 3]
-    np.save(output_path, arr) 
-    print(f"✅ Salvato {arr.shape} in {output_path}")
+    # Costruisci il nome file con il lato
+    base, ext = os.path.splitext(output_path)
+    output_path_leg = f"{base}_{leg}{ext}"
+    np.save(output_path_leg, arr)
+    print(f"✅ Salvato {arr.shape} in {output_path_leg}")
 else:
     print("❌ Nessun frame utile trovato.")

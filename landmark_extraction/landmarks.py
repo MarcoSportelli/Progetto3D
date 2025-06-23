@@ -13,7 +13,7 @@ import mediapipe as mp
 # output_path = sys.argv[2]
 # leg = sys.argv[3].lower()
 
-video_path = "video.mp4"  # Cambia con il tuo file video
+video_path = "flessioneav.mp4"  # Cambia con il tuo file video
 output_path = "../incoming_data/output.npy"
 leg = "right"  # Cambia con "left" o "right"
 

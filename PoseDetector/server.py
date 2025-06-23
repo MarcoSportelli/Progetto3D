@@ -4,6 +4,7 @@ import time
 import os
 from models.model import PoseTransformer3D
 from models.dataset import normalize_skeleton, align_pose_down, rotation_matrix_z
+import json
 
 LABEL_MAP = {
     'flessione_indietro': 0,
@@ -113,9 +114,6 @@ while True:
             if data_raw.shape[0] < 5:
                 raise ValueError("Not enough frames.")
 
-            # Estrai il movimento vero e proprio
-            #movement = extract_movement_sequence(data_raw)
-
             # Preprocessing per il modello
             input_data = preprocess(data_raw)
             input_tensor = torch.from_numpy(np.expand_dims(input_data, axis=0))
@@ -137,6 +135,25 @@ while True:
             feedback = get_feedback(class_name, eval_frame)
             if feedback:
                 print(f"📐 Feedback: {feedback} (Angolo valutato: {eval_angle:.2f}°)")
+
+            # --- AGGIUNTA: scrivi file JSON ---
+            # Estrai il lato dal nome file (es: "right" o "left" nel nome)
+            if "right" in fname.lower():
+                gamba = "dx"
+            elif "left" in fname.lower():
+                gamba = "sx"
+            else:
+                gamba = "?"
+
+            output_json = {
+                "predizione": class_name,
+                "angolo": float(eval_angle),
+                "gamba": gamba
+            }
+            with open("../prediction/prediction.json", "w") as f:
+                json.dump(output_json, f)
+            # --- FINE AGGIUNTA ---
+
         except Exception as e:
             print(f"❌ Error processing {fname}: {e}")
         finally:
