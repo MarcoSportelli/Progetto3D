@@ -3,11 +3,15 @@
   "WorkspaceRootPath": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|c:\\users\\markd\\documents\\github\\progetto3d\\app\\assets\\script\\recordpose.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|c:\\users\\markd\\documents\\github\\progetto3d\\app\\assets\\script\\uicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\uicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\assets\\script\\recordpose.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\recordpose.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|c:\\users\\markd\\documents\\github\\progetto3d\\app\\assets\\script\\predizionereader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\assets\\script\\predizionereader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\predizionereader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -35,19 +39,31 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "RecordPose.cs",
-              "DocumentMoniker": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\RecordPose.cs",
-              "RelativeDocumentMoniker": "Assets\\Script\\RecordPose.cs",
-              "ToolTip": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\RecordPose.cs*",
-              "RelativeToolTip": "Assets\\Script\\RecordPose.cs*",
-              "ViewState": "AgIAAJgAAAAAAAAAAAAcwK0AAAABAAAAAAAAAA==",
+              "Title": "UIController.cs",
+              "DocumentMoniker": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\UIController.cs",
+              "RelativeDocumentMoniker": "Assets\\Script\\UIController.cs",
+              "ToolTip": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\UIController.cs",
+              "RelativeToolTip": "Assets\\Script\\UIController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T15:09:08.101Z",
+              "WhenOpened": "2025-06-24T09:39:53.513Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
+              "Title": "RecordPose.cs",
+              "DocumentMoniker": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\RecordPose.cs",
+              "RelativeDocumentMoniker": "Assets\\Script\\RecordPose.cs",
+              "ToolTip": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\RecordPose.cs",
+              "RelativeToolTip": "Assets\\Script\\RecordPose.cs",
+              "ViewState": "AgIAAJgAAAAAAAAAAAAcwK0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-23T15:09:08.101Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "EventSystem.cs",
               "DocumentMoniker": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\EventSystem\\EventSystem.cs",
               "RelativeDocumentMoniker": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\EventSystem\\EventSystem.cs",
@@ -59,7 +75,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "PredizioneReader.cs",
               "DocumentMoniker": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\PredizioneReader.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\PredizioneReader.cs",
@@ -67,12 +83,11 @@
               "RelativeToolTip": "Assets\\Script\\PredizioneReader.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAIkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T12:45:42.325Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-23T12:45:42.325Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "WebcamDisplay.cs",
               "DocumentMoniker": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\WebcamDisplay.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\WebcamDisplay.cs",
@@ -84,7 +99,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "ControlloAnimazioniGambe.cs",
               "DocumentMoniker": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\ControlloAnimazioniGambe.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\ControlloAnimazioniGambe.cs",
