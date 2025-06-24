@@ -9,14 +9,13 @@ public class RecordPose : MonoBehaviour
 {
     [Header("Recording Settings")]
     public bool isLeftLeg = true;
-    [Tooltip("Duration in seconds for recording")]
     public float recordingDuration = 5f;
 
     [Header("UI References")]
-    [SerializeField] private Button recordButton;
-    [SerializeField] private Button toggleLegButton;
     [SerializeField] private Text statusText;
-    [SerializeField] private Text legSideText;
+
+    [Header("UI Toggles")]
+    [SerializeField] private Toggle leftLegToggle;
 
     [Header("External Tools Paths")]
     [SerializeField] private string pythonServerExe = @"C:\Users\markd\anaconda3\python.exe";
@@ -28,12 +27,20 @@ public class RecordPose : MonoBehaviour
     private string pythonExtractPath;
     private string pythonExtractExe;
     private string serverScriptPath;
-
+    private Process recordingProcess;
     void Start()
     {
         InitializePaths();
-        SetupUI();
+
+        if (leftLegToggle != null)
+        {
+            isLeftLeg = leftLegToggle.isOn;
+            UnityEngine.Debug.Log($"[Start] Valore iniziale Toggle -> isLeftLeg: {isLeftLeg}");
+        }
+
+        UpdateStatus("Pronto");
     }
+
 
     void InitializePaths()
     {
@@ -49,77 +56,35 @@ public class RecordPose : MonoBehaviour
         serverScriptPath = Path.Combine(poseDetectorPath, "server.py");
     }
 
-    void SetupUI()
-    {
-        if (recordButton == null || toggleLegButton == null || statusText == null || legSideText == null)
-        {
-            UnityEngine.Debug.LogError("UI references not assigned in inspector!");
-            return;
-        }
-
-        recordButton.onClick.AddListener(StartRecording);
-        toggleLegButton.onClick.AddListener(ToggleLegSide);
-        UpdateLegDisplay();
-        UpdateStatus("Pronto");
-    }
-
     public void ToggleLegSide()
     {
         if (isProcessing) return;
-        
+
         isLeftLeg = !isLeftLeg;
-        UpdateLegDisplay();
+        UnityEngine.Debug.Log($"[ToggleLegSide] Nuovo valore -> isLeftLeg: {isLeftLeg}");
     }
 
-    void UpdateLegDisplay()
-    {
-        legSideText.text = isLeftLeg ? "Lato: Sinistro" : "Lato: Destro";
-    }
+
 
     void UpdateStatus(string message)
     {
-        statusText.text = message;
+        if (statusText != null)
+            statusText.text = message;
+
         UnityEngine.Debug.Log(message);
     }
 
-    public void StartRecording()
+    public IEnumerator RecordOnly()
     {
-        if (isProcessing) return;
-        
-        currentRecordingTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        StartCoroutine(FullProcessingPipeline());
-    }
+        if (isProcessing) yield break;
 
-    IEnumerator FullProcessingPipeline()
-    {
+        isLeftLeg = leftLegToggle.isOn;
         isProcessing = true;
-        recordButton.interactable = false;
-        toggleLegButton.interactable = false;
-
-        // 1. Recording
-        UpdateStatus("Registrazione in corso...");
-        yield return StartCoroutine(RecordRealsenseData());
-        
-        // 2. Landmark Extraction
-        UpdateStatus("Estrazione landmark...");
-        yield return StartCoroutine(RunLandmarkExtraction());
-        
-        // 3. Server Inference
-        UpdateStatus("Analisi in corso...");
-        yield return StartCoroutine(RunServerInference());
-        
-        // Clean up
-        isProcessing = false;
-        recordButton.interactable = true;
-        toggleLegButton.interactable = true;
-        UpdateStatus("Completato!");
-        yield return new WaitForSeconds(2);
-        UpdateStatus("Pronto");
-    }
-
-    IEnumerator RecordRealsenseData()
-    {
+        currentRecordingTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
         string bagFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.bag");
+
+        UnityEngine.Debug.Log($"[RecordOnly] Inizio registrazione - Salvataggio in: {bagFilePath}");
+        UpdateStatus("Registrazione in corso...");
 
         ProcessStartInfo psi = new ProcessStartInfo
         {
@@ -130,23 +95,47 @@ public class RecordPose : MonoBehaviour
             CreateNoWindow = true
         };
 
-        using (Process p = Process.Start(psi))
+        recordingProcess = Process.Start(psi);
+        yield return new WaitForSeconds(recordingDuration);
+
+        if (!recordingProcess.HasExited)
         {
-            yield return new WaitForSeconds(recordingDuration);
-            
-            if (!p.HasExited)
-            {
-                p.Kill();
-                UnityEngine.Debug.Log("Registrazione interrotta dopo il timeout");
-            }
+            recordingProcess.Kill();
+            UnityEngine.Debug.Log("[RecordOnly] Registrazione completata (timeout).");
         }
+
+        recordingProcess = null;
+        isProcessing = false;
+        UnityEngine.Debug.Log("[RecordOnly] Fine registrazione.");
+    }
+
+    public void ForceStopRecording()
+    {
+        if (recordingProcess != null && !recordingProcess.HasExited)
+        {
+            recordingProcess.Kill();
+            UnityEngine.Debug.Log("[ForceStopRecording] Registrazione interrotta manualmente.");
+            recordingProcess = null;
+            isProcessing = false;
+        }
+    }
+
+
+    public IEnumerator ExtractAndInfer()
+    {
+        yield return StartCoroutine(RunLandmarkExtraction());
+        yield return StartCoroutine(RunServerInference());
+        UpdateStatus("Analisi completata!");
     }
 
     IEnumerator RunLandmarkExtraction()
     {
+        UpdateStatus("Estrazione landmark...");
         string bagFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.bag");
         string npyFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.npy");
         string legSide = isLeftLeg ? "left" : "right";
+
+        UnityEngine.Debug.Log($"[RunLandmarkExtraction] Avvio estrazione: {bagFilePath} -> {npyFilePath} (lato: {legSide})");
 
         ProcessStartInfo start = new ProcessStartInfo
         {
@@ -160,28 +149,28 @@ public class RecordPose : MonoBehaviour
 
         using (Process process = new Process { StartInfo = start })
         {
-            process.OutputDataReceived += (sender, args) => UnityEngine.Debug.Log(args.Data);
-            process.ErrorDataReceived += (sender, args) => UnityEngine.Debug.LogError(args.Data);
+            process.OutputDataReceived += (sender, args) => UnityEngine.Debug.Log($"[Extractor STDOUT] {args.Data}");
+            process.ErrorDataReceived += (sender, args) => UnityEngine.Debug.LogError($"[Extractor STDERR] {args.Data}");
 
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
             while (!process.HasExited)
-            {
                 yield return null;
-            }
+
+            UnityEngine.Debug.Log($"[RunLandmarkExtraction] Estrazione completata con codice: {process.ExitCode}");
 
             if (process.ExitCode != 0)
-            {
-                UnityEngine.Debug.LogError($"Errore durante l'estrazione (codice {process.ExitCode})");
-            }
+                UnityEngine.Debug.LogError($"[RunLandmarkExtraction] Errore durante l'estrazione (codice {process.ExitCode})");
         }
     }
-
     IEnumerator RunServerInference()
     {
+        UpdateStatus("Inferenza in corso...");
         string npyFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.npy");
+
+        UnityEngine.Debug.Log($"[RunServerInference] Avvio inferenza su: {npyFilePath}");
 
         ProcessStartInfo start = new ProcessStartInfo
         {
@@ -195,22 +184,21 @@ public class RecordPose : MonoBehaviour
 
         using (Process process = new Process { StartInfo = start })
         {
-            process.OutputDataReceived += (sender, args) => UnityEngine.Debug.Log(args.Data);
-            process.ErrorDataReceived += (sender, args) => UnityEngine.Debug.LogError(args.Data);
+            process.OutputDataReceived += (sender, args) => UnityEngine.Debug.Log($"[Inference STDOUT] {args.Data}");
+            process.ErrorDataReceived += (sender, args) => UnityEngine.Debug.LogError($"[Inference STDERR] {args.Data}");
 
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
             while (!process.HasExited)
-            {
                 yield return null;
-            }
+
+            UnityEngine.Debug.Log($"[RunServerInference] Inferenza completata con codice: {process.ExitCode}");
 
             if (process.ExitCode != 0)
-            {
-                UnityEngine.Debug.LogError($"Errore durante l'inferenza (codice {process.ExitCode})");
-            }
+                UnityEngine.Debug.LogError($"[RunServerInference] Errore durante l'inferenza (codice {process.ExitCode})");
         }
     }
+
 }
