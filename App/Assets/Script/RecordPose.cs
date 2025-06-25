@@ -85,7 +85,7 @@ public class RecordPose : MonoBehaviour
         isProcessing = true;
         currentRecordingTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss") + (isLeftLeg ? "_left" : "_right");
         string videoFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.mp4");
-
+        
         WebcamDisplay webcamDisplay = FindObjectOfType<WebcamDisplay>();
         WebCamTexture cam = null;
 
@@ -100,6 +100,7 @@ public class RecordPose : MonoBehaviour
             }
         }
 
+        
         UpdateStatus("Registrazione webcam in corso...");
         UnityEngine.Debug.Log($"[RecordOnly] Inizio registrazione webcam - Salvataggio in: {videoFilePath}");
 
@@ -156,13 +157,14 @@ public class RecordPose : MonoBehaviour
 
             UpdateStatus("Registrazione completata.");
         }
-
+        
         // ✅ Step 2: Riattiva la webcam Unity
         if (cam != null && !cam.isPlaying)
         {
             cam.Play();
             UnityEngine.Debug.Log("[RecordOnly] Webcam Unity riavviata.");
         }
+        
 
         recordingProcess = null;
         isProcessing = false;
