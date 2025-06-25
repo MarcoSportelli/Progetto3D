@@ -24,6 +24,7 @@ public class RecordPose : MonoBehaviour
     private bool isProcessing = false;
     private string currentRecordingTimestamp;
     private string dataPath;
+    private string dataPathnpy;
     private string pythonExtractPath;
     private string pythonExtractExe;
     private string serverScriptPath;
@@ -44,14 +45,16 @@ public class RecordPose : MonoBehaviour
 
     void InitializePaths()
     {
-        string projectPath = Directory.GetParent(Application.dataPath).FullName;
-        dataPath = Path.Combine(projectPath, "data");
-        Directory.CreateDirectory(dataPath);
+        string appFolderPath = Directory.GetParent(Application.dataPath).FullName; // App/
+        string projectRootPath = Directory.GetParent(appFolderPath).FullName;     // cartella che contiene "App" e "landmark_extraction" e "PoseDetector"
 
-        string landmarkPath = Path.Combine(projectPath, "landmark_extraction");
-        string poseDetectorPath = Path.Combine(projectPath, "PoseDetector");
+        dataPath = Path.Combine(appFolderPath, "data");  // resta dentro App/data
+        dataPathnpy = Path.Combine(projectRootPath, "incoming_data"); 
 
-        pythonExtractPath = Path.Combine(landmarkPath, "extract_landmarks.py");
+        string landmarkPath = Path.Combine(projectRootPath, "landmark_extraction");
+        string poseDetectorPath = Path.Combine(projectRootPath, "PoseDetector");
+
+        pythonExtractPath = Path.Combine(landmarkPath, "landmarks.py");
         pythonExtractExe = Path.Combine(landmarkPath, "mp_env", "Scripts", "python.exe");
         serverScriptPath = Path.Combine(poseDetectorPath, "server.py");
     }
@@ -80,35 +83,91 @@ public class RecordPose : MonoBehaviour
 
         isLeftLeg = leftLegToggle.isOn;
         isProcessing = true;
-        currentRecordingTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        string bagFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.bag");
+        currentRecordingTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss") + (isLeftLeg ? "_left" : "_right");
+        string videoFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.mp4");
 
-        UnityEngine.Debug.Log($"[RecordOnly] Inizio registrazione - Salvataggio in: {bagFilePath}");
-        UpdateStatus("Registrazione in corso...");
+        WebcamDisplay webcamDisplay = FindObjectOfType<WebcamDisplay>();
+        WebCamTexture cam = null;
+
+        if (webcamDisplay != null)
+        {
+            var webcamField = typeof(WebcamDisplay).GetField("webcamTexture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            cam = (WebCamTexture)webcamField?.GetValue(webcamDisplay);
+            if (cam != null && cam.isPlaying)
+            {
+                cam.Stop();
+                UnityEngine.Debug.Log("[RecordOnly] Webcam Unity fermata temporaneamente per FFmpeg.");
+            }
+        }
+
+        UpdateStatus("Registrazione webcam in corso...");
+        UnityEngine.Debug.Log($"[RecordOnly] Inizio registrazione webcam - Salvataggio in: {videoFilePath}");
+
+        string ffmpegPath = Path.Combine(Application.dataPath, "..", "ffmpeg", "bin", "ffmpeg.exe");
+        ffmpegPath = Path.GetFullPath(ffmpegPath);
+
+        string ffmpegArgs = $"-f dshow -i video=\"HP Wide Vision HD Camera\" -t {recordingDuration} -vcodec libx264 -pix_fmt yuv420p \"{videoFilePath}\"";
+        UnityEngine.Debug.Log("Data path: " + dataPath + " | Exists? " + Directory.Exists(dataPath));
+        UnityEngine.Debug.Log("Video path: " + videoFilePath);
+        UnityEngine.Debug.Log("FFmpeg path: " + ffmpegPath + " | Exists? " + File.Exists(ffmpegPath));
+        UnityEngine.Debug.Log($"FFmpeg Args: {ffmpegArgs}");
+        UnityEngine.Debug.Log($"[FFmpeg CMD] \"{ffmpegPath}\" {ffmpegArgs}");
 
         ProcessStartInfo psi = new ProcessStartInfo
         {
-            FileName = rsRecordPath,
-            Arguments = $"-o \"{bagFilePath}\"",
+            FileName = ffmpegPath,
+            Arguments = ffmpegArgs,
             UseShellExecute = false,
             RedirectStandardOutput = true,
+            RedirectStandardError = true,
             CreateNoWindow = true
         };
 
-        recordingProcess = Process.Start(psi);
-        yield return new WaitForSeconds(recordingDuration);
-
-        if (!recordingProcess.HasExited)
+        using (recordingProcess = new Process { StartInfo = psi })
         {
-            recordingProcess.Kill();
-            UnityEngine.Debug.Log("[RecordOnly] Registrazione completata (timeout).");
+            recordingProcess.OutputDataReceived += (s, e) => UnityEngine.Debug.Log($"[FFmpeg STDOUT] {e.Data}");
+            recordingProcess.ErrorDataReceived += (sender, args) =>
+            {
+                if (!string.IsNullOrEmpty(args.Data))
+                {
+                    if (args.Data.ToLower().Contains("error"))
+                        UnityEngine.Debug.LogError($"[FFmpeg STDERR] {args.Data}");
+                    else
+                        UnityEngine.Debug.Log($"[FFmpeg STDERR] {args.Data}");
+                }
+            };
+
+            recordingProcess.Start();
+            recordingProcess.BeginOutputReadLine();
+            recordingProcess.BeginErrorReadLine();
+
+            float elapsed = 0f;
+            while (!recordingProcess.HasExited && elapsed < recordingDuration + 2f)
+            {
+                yield return null;
+                elapsed += Time.deltaTime;
+            }
+
+            if (!recordingProcess.HasExited)
+            {
+                recordingProcess.Kill();
+                UnityEngine.Debug.LogWarning("[RecordOnly] Registrazione interrotta per timeout.");
+            }
+
+            UpdateStatus("Registrazione completata.");
+        }
+
+        // ✅ Step 2: Riattiva la webcam Unity
+        if (cam != null && !cam.isPlaying)
+        {
+            cam.Play();
+            UnityEngine.Debug.Log("[RecordOnly] Webcam Unity riavviata.");
         }
 
         recordingProcess = null;
         isProcessing = false;
         UnityEngine.Debug.Log("[RecordOnly] Fine registrazione.");
     }
-
     public void ForceStopRecording()
     {
         if (recordingProcess != null && !recordingProcess.HasExited)
@@ -127,20 +186,19 @@ public class RecordPose : MonoBehaviour
         yield return StartCoroutine(RunServerInference());
         UpdateStatus("Analisi completata!");
     }
-
     IEnumerator RunLandmarkExtraction()
     {
         UpdateStatus("Estrazione landmark...");
-        string bagFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.bag");
-        string npyFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.npy");
+        string videoFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.mp4");
+        string npyFilePath = Path.Combine(dataPathnpy, $"{currentRecordingTimestamp}.npy");
         string legSide = isLeftLeg ? "left" : "right";
 
-        UnityEngine.Debug.Log($"[RunLandmarkExtraction] Avvio estrazione: {bagFilePath} -> {npyFilePath} (lato: {legSide})");
+        UnityEngine.Debug.Log($"[RunLandmarkExtraction] Avvio estrazione: {videoFilePath} -> {npyFilePath} (lato: {legSide})");
 
         ProcessStartInfo start = new ProcessStartInfo
         {
             FileName = pythonExtractExe,
-            Arguments = $"\"{pythonExtractPath}\" \"{bagFilePath}\" \"{npyFilePath}\" {legSide}",
+            Arguments = $"\"{pythonExtractPath}\" \"{videoFilePath}\" \"{npyFilePath}\" {legSide}",
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -165,10 +223,11 @@ public class RecordPose : MonoBehaviour
                 UnityEngine.Debug.LogError($"[RunLandmarkExtraction] Errore durante l'estrazione (codice {process.ExitCode})");
         }
     }
+
     IEnumerator RunServerInference()
     {
         UpdateStatus("Inferenza in corso...");
-        string npyFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.npy");
+        string npyFilePath = Path.Combine(dataPathnpy, $"{currentRecordingTimestamp}.npy");
 
         UnityEngine.Debug.Log($"[RunServerInference] Avvio inferenza su: {npyFilePath}");
 
@@ -181,6 +240,8 @@ public class RecordPose : MonoBehaviour
             RedirectStandardError = true,
             CreateNoWindow = true
         };
+        start.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8";
+
 
         using (Process process = new Process { StartInfo = start })
         {

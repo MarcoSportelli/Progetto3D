@@ -14,9 +14,16 @@ LABEL_MAP = {
 }
 
 SEQ_LEN = 50
-INPUT_FEATURE_SIZE = 5 * 3  # 5 landmarks * (x, y, z)
-MODEL_PATH = "model_weights_final_v2.pt"
-WATCH_DIR = "../incoming_data"
+INPUT_FEATURE_SIZE = 5 * 3  
+# Ottieni la directory dove si trova questo script
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Percorsi assoluti
+MODEL_PATH = os.path.join(BASE_DIR, "model_weights_final_v2.pt")
+WATCH_DIR = os.path.abspath(os.path.join(BASE_DIR, "../incoming_data"))
+PREDICTION_DIR = os.path.abspath(os.path.join(BASE_DIR, "../prediction"))
+PREDICTION_JSON = os.path.join(PREDICTION_DIR, "prediction.json")
+
 
 model = PoseTransformer3D(input_size=INPUT_FEATURE_SIZE, num_classes=len(LABEL_MAP))
 model.load_state_dict(torch.load(MODEL_PATH, map_location='cpu'))
@@ -71,7 +78,8 @@ def preprocess(data):
     elif data.shape[0] < SEQ_LEN:
         pad = np.zeros((SEQ_LEN - data.shape[0], *data.shape[1:]))
         data = np.concatenate([data, pad], axis=0)
-
+    else:
+        print(f"✅ Sequenza già di lunghezza {SEQ_LEN}")
      
     #data = align_pose_down(data)
     data = normalize_skeleton(data)
@@ -105,58 +113,57 @@ def get_feedback(class_name, frame):
 
 print("✅ Model server running. Watching for .npy files...")
 
-while True:
-    files = [f for f in os.listdir(WATCH_DIR) if f.endswith(".npy")]
-    for fname in files:
-        fpath = os.path.join(WATCH_DIR, fname)
-        try:
-            data_raw = np.load(fpath)
-            if data_raw.shape[0] < 5:
-                raise ValueError("Not enough frames.")
 
-            # Preprocessing per il modello
-            input_data = preprocess(data_raw)
-            input_tensor = torch.from_numpy(np.expand_dims(input_data, axis=0))
-            # Prediction
-            with torch.no_grad():
-                output = model(input_tensor)
-                pred = torch.argmax(output, dim=1).item()
-                class_name = [k for k, v in LABEL_MAP.items() if v == pred][0]
-                print(f"[{fname}] → Predicted: {class_name}")
+files = [f for f in os.listdir(WATCH_DIR) if f.endswith(".npy")]
+for fname in files:
+    fpath = os.path.join(WATCH_DIR, fname)
+    try:
+        data_raw = np.load(fpath)
+        if data_raw.shape[0] < 5:
+            raise ValueError("Not enough frames.")
 
-            # Feedback angolare
-            angles = [calculate_angle(f[0], f[1], f[2]) for f in data_raw]
-            if class_name.startswith("estensione"):
-                idx = int(np.argmax(angles))
-            else:
-                idx = int(np.argmin(angles))
-            eval_frame = data_raw[idx]
-            eval_angle = angles[idx]
-            feedback = get_feedback(class_name, eval_frame)
-            if feedback:
-                print(f"📐 Feedback: {feedback} (Angolo valutato: {eval_angle:.2f}°)")
+        # Preprocessing per il modello
+        input_data = preprocess(data_raw)
+        input_tensor = torch.from_numpy(np.expand_dims(input_data, axis=0))
+        # Prediction
+        with torch.no_grad():
+            output = model(input_tensor)
+            pred = torch.argmax(output, dim=1).item()
+            class_name = [k for k, v in LABEL_MAP.items() if v == pred][0]
+            print(f"[{fname}] → Predicted: {class_name}")
 
-            # --- AGGIUNTA: scrivi file JSON ---
-            # Estrai il lato dal nome file (es: "right" o "left" nel nome)
-            if "right" in fname.lower():
-                gamba = "dx"
-            elif "left" in fname.lower():
-                gamba = "sx"
-            else:
-                gamba = "?"
+        # Feedback angolare
+        angles = [calculate_angle(f[0], f[1], f[2]) for f in data_raw]
+        if class_name.startswith("estensione"):
+            idx = int(np.argmax(angles))
+        else:
+            idx = int(np.argmin(angles))
+        eval_frame = data_raw[idx]
+        eval_angle = angles[idx]
+        feedback = get_feedback(class_name, eval_frame)
+        if feedback:
+            print(f"📐 Feedback: {feedback} (Angolo valutato: {eval_angle:.2f}°)")
 
-            output_json = {
-                "predizione": class_name,
-                "angolo": float(eval_angle),
-                "gamba": gamba
-            }
-            with open("../prediction/prediction.json", "w") as f:
-                json.dump(output_json, f)
-            # --- FINE AGGIUNTA ---
+        # --- AGGIUNTA: scrivi file JSON ---
+        # Estrai il lato dal nome file (es: "right" o "left" nel nome)
+        if "right" in fname.lower():
+            gamba = "dx"
+        elif "left" in fname.lower():
+            gamba = "sx"
+        else:
+            gamba = "?"
 
-        except Exception as e:
-            print(f"❌ Error processing {fname}: {e}")
-        finally:
-            os.remove(fpath)
+        output_json = {
+            "predizione": class_name,
+            "angolo": float(eval_angle),
+            "gamba": gamba
+        }
+        with open(PREDICTION_JSON, "w") as f:
+            json.dump(output_json, f, indent=4)
+        # --- FINE AGGIUNTA ---
 
-    time.sleep(1)
+    except Exception as e:
+        print(f"❌ Error processing {fname}: {e}")
+    finally:
+        os.remove(fpath)
+
