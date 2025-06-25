@@ -3,20 +3,20 @@
   "WorkspaceRootPath": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|c:\\users\\markd\\documents\\github\\progetto3d\\app\\assets\\script\\recordpose.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\assets\\script\\predizionereader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\predizionereader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|c:\\users\\markd\\documents\\github\\progetto3d\\app\\assets\\script\\webcamdisplay.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\webcamdisplay.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\assets\\script\\recordpose.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\recordpose.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\assets\\script\\recordmanagerui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\recordmanagerui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\assets\\script\\webcamdisplay.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\webcamdisplay.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\assets\\script\\predizionereader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\predizionereader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\assets\\script\\uicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -38,11 +38,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "RecordManagerUI.cs",
               "DocumentMoniker": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\RecordManagerUI.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\RecordManagerUI.cs",
@@ -66,7 +66,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "RecordPose.cs",
               "DocumentMoniker": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\RecordPose.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\RecordPose.cs",
@@ -74,8 +74,7 @@
               "RelativeToolTip": "Assets\\Script\\RecordPose.cs",
               "ViewState": "AgIAAGUAAAAAAAAAAAAnwHYAAABTAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T15:09:08.101Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-23T15:09:08.101Z"
             },
             {
               "$type": "Document",
@@ -91,27 +90,29 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 0,
               "Title": "PredizioneReader.cs",
               "DocumentMoniker": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\PredizioneReader.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\PredizioneReader.cs",
               "ToolTip": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\PredizioneReader.cs",
               "RelativeToolTip": "Assets\\Script\\PredizioneReader.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAARAAAAAAAAAA==",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAAwAoAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T12:45:42.325Z"
+              "WhenOpened": "2025-06-23T12:45:42.325Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "WebcamDisplay.cs",
               "DocumentMoniker": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\WebcamDisplay.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\WebcamDisplay.cs",
               "ToolTip": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\WebcamDisplay.cs",
               "RelativeToolTip": "Assets\\Script\\WebcamDisplay.cs",
-              "ViewState": "AgIAAAgAAAAAAAAAAAAIwCYAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAABIAAAAAAAAAAAAUwCYAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T12:45:31.964Z"
+              "WhenOpened": "2025-06-23T12:45:31.964Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",

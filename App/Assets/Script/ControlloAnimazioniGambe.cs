@@ -39,18 +39,17 @@ public class ControlloAnimazioniGambe : MonoBehaviour
         cameraSX.gameObject.SetActive(false);
         cameraDX.gameObject.SetActive(false);
 
-        if (movimento.ToLower() != "squat")
+        
+        if (lato == "sx")
+            cameraSX.gameObject.SetActive(true);
+        else if (lato == "dx")
+            cameraDX.gameObject.SetActive(true);
+        else
         {
-            if (lato == "sx")
-                cameraSX.gameObject.SetActive(true);
-            else if (lato == "dx")
-                cameraDX.gameObject.SetActive(true);
-            else
-            {
-                Debug.LogError("Lato non valido. Usa 'sx' o 'dx'.");
-                return;
-            }
+            Debug.LogError("Lato non valido. Usa 'sx' o 'dx'.");
+            return;
         }
+        
 
         // 3. Attiva il trigger nell'Animator
         if (animator)

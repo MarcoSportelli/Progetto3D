@@ -106,7 +106,7 @@ def get_feedback(class_name, frame):
     target = target_angles.get(class_name, 90)
     diff = target - angle
 
-    if diff > 5:
+    if diff > 1:
         return f"Ti mancano {diff:.1f}° di {class_name.replace('_', ' ')}"
     return "Movimento corretto!"
 
