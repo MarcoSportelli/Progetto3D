@@ -6,16 +6,16 @@ import mediapipe as mp
 
 
 
-#video_path = sys.argv[1]
-#output_path = sys.argv[2]
-#leg = sys.argv[3].lower()
+video_path = sys.argv[1]
+output_path = sys.argv[2]
+leg = sys.argv[3].lower()
 
 
-video_path = "../App/data/20250625_153816_right.mp4"
-output_path = "../incoming_data/output.npy"
-leg = "right"  
+#video_path = "../App/data/20250625_153816_right.mp4"
+#output_path = "../incoming_data/output.npy"
+#leg = "right"  
 SEQ_LEN = 50
-verbose = True  
+verbose = False  
 
 if leg not in ["left", "right"]:
     if verbose:
