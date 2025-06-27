@@ -38,7 +38,7 @@ BATCH_SIZE = 8
 NUM_EPOCHS = 100
 LR = 5e-4
 WEIGHT_DECAY = 5e-4
-MODEL_NAME = "model_weights_final_v4.pt"
+MODEL_NAME = "model_weights_final_v3.pt"
 
 # 1. Crea il dataset completo SENZA augmentation
 full_dataset = PoseDataset3D(DATA_DIR, LABEL_MAP, seq_len=SEQ_LEN, augment=False)
@@ -128,6 +128,8 @@ train_losses = []
 val_losses = []
 train_accuracies = []
 val_accuracies = []
+early_stop_patience = 10  # Numero di epoche senza miglioramento prima di fermare
+epochs_no_improve = 0
 
 for epoch in range(NUM_EPOCHS):
     train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, device)
@@ -143,7 +145,16 @@ for epoch in range(NUM_EPOCHS):
         best_val_loss = val_loss
         torch.save(model.state_dict(), MODEL_NAME)
         print(f"✅ Modello salvato a epoch {epoch+1} con val_loss {val_loss:.4f}")
+        epochs_no_improve = 0
+    else:
+        epochs_no_improve += 1
+        print(f"⚠️ Nessun miglioramento val_loss da {epochs_no_improve} epoche.")
 
+    # Early stopping
+    if epochs_no_improve >= early_stop_patience:
+        print(f"⏹️ Early stopping: nessun miglioramento su val_loss per {early_stop_patience} epoche.")
+        break
+    
 # Valutazione finale sul test set
 test_loss, test_acc = validate(model, test_loader, criterion, device)
 print(f"Test accuracy: {test_acc:.2f}")
