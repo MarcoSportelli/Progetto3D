@@ -7,7 +7,9 @@ public class PredizioneReader : MonoBehaviour
     public ControlloAnimazioniGambe controlloAnimazioni;
     private string lastJson = "";
 
-    void Update()
+    // Rimuovi Update e usa solo LeggiEAvvia
+
+    public void LeggiEAvvia()
     {
         if (controlloAnimazioni == null)
             return;
@@ -46,33 +48,13 @@ public class PredizioneReader : MonoBehaviour
                         string storicoPath = Path.Combine(storicoDir, fileName);
                         string jsonWithTimestamp = JsonUtility.ToJson(predConTime, true);
                         File.WriteAllText(storicoPath, jsonWithTimestamp);
+
+                        // Cancella prediction.json dopo averlo salvato nello storico
+                        File.Delete(path);
                     }
                     catch { }
 
                     if (!string.IsNullOrEmpty(pred.predizione) && !string.IsNullOrEmpty(pred.gamba))
-                        controlloAnimazioni.AvviaAnimazione(pred.gamba, pred.predizione);
-                }
-                catch { }
-            }
-        }
-    }
-
-    public void LeggiEAvvia()
-    {
-        string appDir = Application.dataPath;
-        string projectDir = Directory.GetParent(appDir).Parent.FullName;
-        string predictionDir = Path.Combine(projectDir, "prediction");
-        string path = Path.Combine(predictionDir, "prediction.json");
-
-        if (File.Exists(path))
-        {
-            string json = File.ReadAllText(path);
-            if (!string.IsNullOrWhiteSpace(json))
-            {
-                try
-                {
-                    Predizione pred = JsonUtility.FromJson<Predizione>(json);
-                    if (controlloAnimazioni != null)
                         controlloAnimazioni.AvviaAnimazione(pred.gamba, pred.predizione);
                 }
                 catch { }
@@ -87,5 +69,5 @@ public class Predizione
     public string predizione;
     public float angolo;
     public string gamba;
-    public string timestamp;
+    public string timestamp; // Aggiunto per tenere traccia del momento della predizione
 }

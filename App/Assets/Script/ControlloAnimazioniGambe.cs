@@ -26,7 +26,7 @@ public class ControlloAnimazioniGambe : MonoBehaviour
                 nomeTrigger = $"Trigger_FlessIndietro_{lato.ToUpper()}";
                 break;
 
-            case "estensione":
+            case "estensione_gamba":
                 nomeTrigger = $"Trigger_Estensione_{lato.ToUpper()}";
                 break;
 

@@ -15,21 +15,19 @@ public class RecordPose : MonoBehaviour
     [SerializeField] private Text statusText;
 
     [Header("UI Toggles")]
-    [SerializeField] private Toggle leftLegToggle;
+    [SerializeField] public Toggle leftLegToggle;
 
     [Header("External Tools Paths")]
     [SerializeField] private string pythonServerExe = @"C:\Users\markd\anaconda3\python.exe";
-    [SerializeField] private string rsRecordPath = @"C:\Users\markd\Documents\Intel RealSense SDK 2.0\tools\rs-record.exe";
-    [SerializeField] public Text timerText;
     private bool isProcessing = false;
-    private string currentRecordingTimestamp;
-    private string dataPath;
+    public string currentRecordingTimestamp;
+    public string dataPath;
     private string dataPathnpy;
     private string pythonExtractPath;
     private string pythonExtractExe;
     private string serverScriptPath;
-    private Process recordingProcess;
     public event Action OnRecordingFinished;
+    public PredizioneReader predizioneReader; // Assegna dall’Inspector!
     void Start()
     {
         InitializePaths();
@@ -68,72 +66,6 @@ public class RecordPose : MonoBehaviour
         UnityEngine.Debug.Log($"[ToggleLegSide] Nuovo valore -> isLeftLeg: {isLeftLeg}");
     }
 
-
-    public IEnumerator RecordRealSenseBag()
-    {
-        if (isProcessing) yield break;
-
-        isLeftLeg = leftLegToggle.isOn;
-        isProcessing = true;
-        currentRecordingTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss") + (isLeftLeg ? "_left" : "_right");
-        string bagFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.bag");
-
-        UpdateStatus("Registrazione RealSense in corso...");
-        UnityEngine.Debug.Log($"[RecordRealSenseBag] Inizio registrazione RealSense - Salvataggio in: {bagFilePath}");
-
-        // Esempio: rs-record.exe -o output.bag
-        string args = $"-o \"{bagFilePath}\"";
-
-        ProcessStartInfo psi = new ProcessStartInfo
-        {
-            FileName = rsRecordPath,
-            Arguments = args,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true
-        };
-
-        using (recordingProcess = new Process { StartInfo = psi })
-        {
-            recordingProcess.OutputDataReceived += (s, e) => UnityEngine.Debug.Log($"[RealSense STDOUT] {e.Data}");
-            recordingProcess.ErrorDataReceived += (sender, args) =>
-            {
-                if (!string.IsNullOrEmpty(args.Data))
-                {
-                    if (args.Data.ToLower().Contains("error"))
-                        UnityEngine.Debug.LogError($"[RealSense STDERR] {args.Data}");
-                    else
-                        UnityEngine.Debug.Log($"[RealSense STDERR] {args.Data}");
-                }
-            };
-
-            recordingProcess.Start();
-            recordingProcess.BeginOutputReadLine();
-            recordingProcess.BeginErrorReadLine();
-
-            float elapsed = 0f;
-            while (!recordingProcess.HasExited && elapsed < recordingDuration + 2f)
-            {
-                yield return null;
-                elapsed += Time.deltaTime;
-            }
-
-            if (!recordingProcess.HasExited)
-            {
-                recordingProcess.Kill();
-                UnityEngine.Debug.LogWarning("[RecordRealSenseBag] Registrazione interrotta per timeout.");
-            }
-
-            UpdateStatus("Registrazione RealSense completata.");
-        }
-
-        recordingProcess = null;
-        isProcessing = false;
-        if (OnRecordingFinished != null)
-            OnRecordingFinished();
-        UnityEngine.Debug.Log("[RecordRealSenseBag] Fine registrazione.");
-    }
     void UpdateStatus(string message)
     {
         if (statusText != null)
@@ -141,7 +73,7 @@ public class RecordPose : MonoBehaviour
 
         UnityEngine.Debug.Log(message);
     }
-
+/*
     public IEnumerator RecordOnly()
     {
         if (isProcessing) yield break;
@@ -210,15 +142,10 @@ public class RecordPose : MonoBehaviour
             float elapsed = 0f;
             while (!recordingProcess.HasExited && elapsed < recordingDuration + 2f)
             {
-                if (timerText != null)
-                    timerText.text = $"Timer: {Mathf.Clamp(recordingDuration - elapsed, 0, recordingDuration):F1}s";
-                yield return null;
+                     yield return null;
                 elapsed += Time.deltaTime;
             }
-            if (timerText != null)
-                timerText.text = "";
-
-
+           
             if (!recordingProcess.HasExited)
             {
                 recordingProcess.Kill();
@@ -251,17 +178,21 @@ public class RecordPose : MonoBehaviour
         }
     }
 
-
+*/
     public IEnumerator ExtractAndInfer()
     {
         yield return StartCoroutine(RunLandmarkExtraction());
         yield return StartCoroutine(RunServerInference());
+        LeggiPredizioneEAggiornaUI();
+        if (predizioneReader != null)
+            predizioneReader.LeggiEAvvia();
+
         UpdateStatus("Analisi completata!");
     }
     IEnumerator RunLandmarkExtraction()
     {
         UpdateStatus("Estrazione landmark...");
-        string videoFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.mp4");
+        string videoFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.bag");
         string npyFilePath = Path.Combine(dataPathnpy, $"{currentRecordingTimestamp}.npy");
         string legSide = isLeftLeg ? "left" : "right";
 
@@ -293,6 +224,31 @@ public class RecordPose : MonoBehaviour
 
             if (process.ExitCode != 0)
                 UnityEngine.Debug.LogError($"[RunLandmarkExtraction] Errore durante l'estrazione (codice {process.ExitCode})");
+        }
+    }
+    private void LeggiPredizioneEAggiornaUI()
+    {
+        string appDir = Application.dataPath;
+        string projectDir = Directory.GetParent(appDir).Parent.FullName;
+        string predictionDir = Path.Combine(projectDir, "prediction");
+        string path = Path.Combine(predictionDir, "prediction.json");
+
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                try
+                {
+                    Predizione pred = JsonUtility.FromJson<Predizione>(json);
+                    UpdateStatus($"Predizione: {pred.predizione} | Angolo: {pred.angolo:F1}°");
+                }
+                catch (Exception e)
+                {
+                    UpdateStatus("Errore lettura predizione: " + e.Message);
+                }
+            }
+            
         }
     }
 

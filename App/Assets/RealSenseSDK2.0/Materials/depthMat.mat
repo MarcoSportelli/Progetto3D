@@ -13,7 +13,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
-  - _COLORMAP_GRAY
+  - _COLORMAP_RAINBOW
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -34,7 +34,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Colormap: 7
+    - _Colormap: 4
     - _DepthScale: 0.001
     - _MaxRange: 20
     - _MinRange: 0

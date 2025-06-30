@@ -5,6 +5,7 @@ import os
 from models.model import PoseTransformer3D
 from models.dataset import normalize_skeleton, align_pose_down, rotation_matrix_z
 import json
+import cv2  # Importa OpenCV
 
 LABEL_MAP = {
     'flessione_indietro': 0,
@@ -81,7 +82,7 @@ def preprocess(data):
     else:
         print(f"✅ Sequenza già di lunghezza {SEQ_LEN}")
      
-    data = align_pose_down(data)
+    #data = align_pose_down(data)
     data = normalize_skeleton(data)
 
     mean = data.mean(axis=(0, 1), keepdims=True)
@@ -143,6 +144,29 @@ for fname in files:
         feedback = get_feedback(class_name, eval_frame)
         if feedback:
             print(f"📐 Feedback: {feedback} (Angolo valutato: {eval_angle:.2f}°)")
+
+        # === VISUALIZZAZIONE FRAME VALUTATO ===
+        try:
+            # Crea un'immagine nera
+            img = np.zeros((480, 640, 3), dtype=np.uint8)
+            # Scala per visualizzare meglio (assumendo x,y normalizzati)
+            h, w = img.shape[:2]
+            points = []
+            for lm in eval_frame:
+                x = int(lm[0] * w)
+                y = int(lm[1] * h)
+                points.append((x, y))
+                cv2.circle(img, (x, y), 8, (0, 255, 0), -1)
+            # Disegna linee tra hip-knee-ankle
+            cv2.line(img, points[0], points[1], (255, 0, 0), 3)
+            cv2.line(img, points[1], points[2], (255, 0, 0), 3)
+            # Mostra l'angolo
+            cv2.putText(img, f"{eval_angle:.1f} deg", points[1], cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
+            cv2.imshow("Frame valutato", img)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        except Exception as e:
+            print(f"Errore visualizzazione frame: {e}")
 
         # --- AGGIUNTA: scrivi file JSON ---
         # Estrai il lato dal nome file (es: "right" o "left" nel nome)
