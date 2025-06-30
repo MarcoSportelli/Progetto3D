@@ -6,20 +6,24 @@ import cv2
 import mediapipe as mp
 
 # === Argomenti da terminale ===
-#if len(sys.argv) != 4:
-#    print("Usage: python extract_leg_landmarks.py input_file.bag output_file.npy [left|right]")
-#    sys.exit(1)
+# if len(sys.argv) != 4:
+#     print("Usage: python extract_leg_landmarks.py input_file.bag output_file.npy [left|right]")
+#     sys.exit(1)
 
-#bag_path = sys.argv[1]
-#output_path = sys.argv[2]
-#leg = sys.argv[3].lower()
+# bag_path = sys.argv[1]
+# output_path = sys.argv[2]
+# leg = sys.argv[3].lower()
 
-bag_path = "test.bag"  # Cambia con il tuo file
+bag_path = "../App/data/20250630_040809.bag"  # Cambia con il tuo file
 output_path = "../incoming_data/output.npy"
-leg = "right"  # Cambia con "left" o "right"
+leg = "left"  # Cambiacon "left" o "right"
+
+SEQ_LEN = 50
+verbose = True  # Imposta a True per vedere stampe e immagini
 
 if leg not in ["left", "right"]:
-    print("❌ Lato non valido: usa 'left' o 'right'")
+    if verbose:
+        print("❌ Lato non valido: usa 'left' o 'right'")
     sys.exit(1)
 
 # === Setup MediaPipe ===
@@ -56,7 +60,8 @@ pipeline = rs.pipeline()
 config = rs.config()
 
 if not os.path.exists(bag_path):
-    print(f"❌ File non trovato: {bag_path}")
+    if verbose:
+        print(f"❌ File non trovato: {bag_path}")
     sys.exit(1)
 
 config.enable_device_from_file(bag_path, repeat_playback=False)
@@ -71,7 +76,8 @@ try:
         try:
             frames = pipeline.wait_for_frames()
         except RuntimeError:
-            print("✅ Fine file .bag")
+            if verbose:
+                print("✅ Fine file .bag")
             break
 
         aligned = align.process(frames)
@@ -100,26 +106,54 @@ try:
 
             for idx in landmarks_ids:
                 lm = results.pose_landmarks.landmark[idx]
-                frame_landmarks.append([lm.x, lm.y, lm.z])
+                cx, cy = int(lm.x * w), int(lm.y * h)
+                # Prendi la profondità reale dalla depth map (in metri)
+                if 0 <= cy < depth_in_mm.shape[0] and 0 <= cx < depth_in_mm.shape[1]:
+                    real_z = depth_in_mm[cy, cx] / 1000.0  # da mm a metri
+                    if real_z == 0:
+                        real_z = float(lm.z)  # fallback se la depth è nulla
+                else:
+                    real_z = float(lm.z)  # fallback se out of bounds
+                frame_landmarks.append([lm.x, lm.y, real_z])
+                if verbose:
+                    cv2.circle(color_image, (cx, cy), 6, (0, 255, 0), -1)
 
             collected_frames.append(frame_landmarks)
-            print(f"✅ Frame {frame_idx}: landmarks {leg}")
+            if verbose:
+                print(f"✅ Frame {frame_idx}: landmarks {leg}")
         else:
-            print(f"❌ Nessun landmark - Frame {frame_idx}")
+            if verbose:
+                print(f"❌ Nessun landmark - Frame {frame_idx}")
+
+        if verbose:
+            cv2.imshow("Landmarks", color_image)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
         frame_idx += 1
 
 finally:
     pipeline.stop()
     pose.close()
+    if verbose:
+        cv2.destroyAllWindows()
 
 # === Salvataggio ===
 if collected_frames:
     arr = np.array(collected_frames)  # [frame, 5, 3]
+    # Semplificazione/padding a SEQ_LEN
+    if arr.shape[0] > SEQ_LEN:
+        idx = np.linspace(0, arr.shape[0] - 1, SEQ_LEN).astype(int)
+        arr = arr[idx]
+    elif arr.shape[0] < SEQ_LEN:
+        pad = np.zeros((SEQ_LEN - arr.shape[0], arr.shape[1], arr.shape[2]))
+        arr = np.concatenate([arr, pad], axis=0)
     # Costruisci il nome file con il lato
     base, ext = os.path.splitext(output_path)
     output_path_leg = f"{base}_{leg}{ext}"
     np.save(output_path_leg, arr)
-    print(f"✅ Salvato {arr.shape} in {output_path_leg}")
+    if verbose:
+        print(f"✅ Salvato {arr.shape} in {output_path_leg}")
 else:
-    print("❌ Nessun frame utile trovato.")
+    if verbose:
+        print("❌ Nessun frame utile trovato.")

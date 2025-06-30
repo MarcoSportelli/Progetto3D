@@ -19,8 +19,8 @@ public class RecordPose : MonoBehaviour
 
     [Header("External Tools Paths")]
     [SerializeField] private string pythonServerExe = @"C:\Users\markd\anaconda3\python.exe";
-    [SerializeField] private string rsRecordPath = @"C:\Program Files\Intel RealSense SDK 2.0\tools\rs-record.exe";
-
+    [SerializeField] private string rsRecordPath = @"C:\Users\markd\Documents\Intel RealSense SDK 2.0\tools\rs-record.exe";
+    [SerializeField] public Text timerText;
     private bool isProcessing = false;
     private string currentRecordingTimestamp;
     private string dataPath;
@@ -29,6 +29,7 @@ public class RecordPose : MonoBehaviour
     private string pythonExtractExe;
     private string serverScriptPath;
     private Process recordingProcess;
+    public event Action OnRecordingFinished;
     void Start()
     {
         InitializePaths();
@@ -54,7 +55,7 @@ public class RecordPose : MonoBehaviour
         string landmarkPath = Path.Combine(projectRootPath, "landmark_extraction");
         string poseDetectorPath = Path.Combine(projectRootPath, "PoseDetector");
 
-        pythonExtractPath = Path.Combine(landmarkPath, "landmarks.py");
+        pythonExtractPath = Path.Combine(landmarkPath, "extract_landmarks.py");
         pythonExtractExe = Path.Combine(landmarkPath, "mp_env", "Scripts", "python.exe");
         serverScriptPath = Path.Combine(poseDetectorPath, "server.py");
     }
@@ -68,7 +69,71 @@ public class RecordPose : MonoBehaviour
     }
 
 
+    public IEnumerator RecordRealSenseBag()
+    {
+        if (isProcessing) yield break;
 
+        isLeftLeg = leftLegToggle.isOn;
+        isProcessing = true;
+        currentRecordingTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss") + (isLeftLeg ? "_left" : "_right");
+        string bagFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.bag");
+
+        UpdateStatus("Registrazione RealSense in corso...");
+        UnityEngine.Debug.Log($"[RecordRealSenseBag] Inizio registrazione RealSense - Salvataggio in: {bagFilePath}");
+
+        // Esempio: rs-record.exe -o output.bag
+        string args = $"-o \"{bagFilePath}\"";
+
+        ProcessStartInfo psi = new ProcessStartInfo
+        {
+            FileName = rsRecordPath,
+            Arguments = args,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+
+        using (recordingProcess = new Process { StartInfo = psi })
+        {
+            recordingProcess.OutputDataReceived += (s, e) => UnityEngine.Debug.Log($"[RealSense STDOUT] {e.Data}");
+            recordingProcess.ErrorDataReceived += (sender, args) =>
+            {
+                if (!string.IsNullOrEmpty(args.Data))
+                {
+                    if (args.Data.ToLower().Contains("error"))
+                        UnityEngine.Debug.LogError($"[RealSense STDERR] {args.Data}");
+                    else
+                        UnityEngine.Debug.Log($"[RealSense STDERR] {args.Data}");
+                }
+            };
+
+            recordingProcess.Start();
+            recordingProcess.BeginOutputReadLine();
+            recordingProcess.BeginErrorReadLine();
+
+            float elapsed = 0f;
+            while (!recordingProcess.HasExited && elapsed < recordingDuration + 2f)
+            {
+                yield return null;
+                elapsed += Time.deltaTime;
+            }
+
+            if (!recordingProcess.HasExited)
+            {
+                recordingProcess.Kill();
+                UnityEngine.Debug.LogWarning("[RecordRealSenseBag] Registrazione interrotta per timeout.");
+            }
+
+            UpdateStatus("Registrazione RealSense completata.");
+        }
+
+        recordingProcess = null;
+        isProcessing = false;
+        if (OnRecordingFinished != null)
+            OnRecordingFinished();
+        UnityEngine.Debug.Log("[RecordRealSenseBag] Fine registrazione.");
+    }
     void UpdateStatus(string message)
     {
         if (statusText != null)
@@ -145,9 +210,14 @@ public class RecordPose : MonoBehaviour
             float elapsed = 0f;
             while (!recordingProcess.HasExited && elapsed < recordingDuration + 2f)
             {
+                if (timerText != null)
+                    timerText.text = $"Timer: {Mathf.Clamp(recordingDuration - elapsed, 0, recordingDuration):F1}s";
                 yield return null;
                 elapsed += Time.deltaTime;
             }
+            if (timerText != null)
+                timerText.text = "";
+
 
             if (!recordingProcess.HasExited)
             {

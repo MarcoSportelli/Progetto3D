@@ -115,10 +115,10 @@ test_indices = [temp_idx[i] for i in test_idx]
 
 labels = [train_dataset.dataset.labels[i] for i in train_dataset.indices]
 class_weights = compute_class_weight('balanced', classes=np.unique(labels), y=labels)
-criterion = nn.CrossEntropyLoss(weight=torch.tensor(class_weights, dtype=torch.float32).to(device))
+#criterion = nn.CrossEntropyLoss(weight=torch.tensor(class_weights, dtype=torch.float32).to(device))
 
 # Loss, ottimizzatore e scheduler
-#criterion = nn.CrossEntropyLoss()
+criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
 

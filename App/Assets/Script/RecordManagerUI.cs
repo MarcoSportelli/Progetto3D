@@ -6,7 +6,6 @@ public class RecordManagerUI : MonoBehaviour
 {
     [Header("UI Buttons")]
     public Button buttonAvvia;
-    public Button buttonStop;
     public Button buttonSalva;
     public Button buttonRipeti;
     public GameObject viewportModello3D;
@@ -14,29 +13,40 @@ public class RecordManagerUI : MonoBehaviour
     [Header("Controllo Registrazione")]
     public RecordPose recordPose;
 
+    [Header("UI Timer")]
+    public Text textTimer; // AGGIUNGI QUESTO
+
     private Coroutine recordingCoroutine;
 
     void Start()
     {
-        // Inizializza lo stato dei pulsanti
+        if (recordPose != null && textTimer != null)
+            recordPose.timerText = textTimer;
+
+        // Sottoscrivi l'evento
+        if (recordPose != null)
+            recordPose.OnRecordingFinished += OnRecordingFinished;
+
         buttonAvvia.gameObject.SetActive(true);
-        buttonStop.gameObject.SetActive(false);
         buttonSalva.gameObject.SetActive(false);
         buttonRipeti.gameObject.SetActive(false);
         viewportModello3D.SetActive(false);
+        if (textTimer != null)
+            textTimer.gameObject.SetActive(false);
 
-        // Assegna funzioni ai pulsanti
         buttonAvvia.onClick.AddListener(AvviaRegistrazione);
-        buttonStop.onClick.AddListener(StoppaRegistrazione);
         buttonSalva.onClick.AddListener(SalvaRegistrazione);
         buttonRipeti.onClick.AddListener(RipetiRegistrazione);
     }
 
+    private void OnRecordingFinished()
+    {
+        ToggleButtons(avvia: false, timer: false, salva: true, ripeti: true, modello: false);
+    }
     void AvviaRegistrazione()
     {
-        // Avvia registrazione
-        recordingCoroutine = StartCoroutine(recordPose.RecordOnly());
-        ToggleButtons(avvia: false, stop: true, salva: false, ripeti: false, modello: false);
+        recordingCoroutine = StartCoroutine(recordPose.RecordRealSenseBag());
+        ToggleButtons(avvia: false, timer: true, salva: false, ripeti: false, modello: false);
     }
 
     void StoppaRegistrazione()
@@ -48,26 +58,27 @@ public class RecordManagerUI : MonoBehaviour
             recordingCoroutine = null;
         }
 
-        ToggleButtons(avvia: false, stop: false, salva: true, ripeti: true, modello: false);
+        ToggleButtons(avvia: false, timer: false, salva: true, ripeti: true, modello: false);
     }
 
     void SalvaRegistrazione()
     {
         StartCoroutine(recordPose.ExtractAndInfer());
-        ToggleButtons(avvia: true, stop: false, salva: false, ripeti: false, modello:true);
+        ToggleButtons(avvia: true, timer: false, salva: false, ripeti: false, modello: true);
     }
 
     void RipetiRegistrazione()
     {
-        AvviaRegistrazione(); // Riavvia da capo
+        AvviaRegistrazione();
     }
 
-    void ToggleButtons(bool avvia, bool stop, bool salva, bool ripeti, bool modello)
+    void ToggleButtons(bool avvia, bool timer, bool salva, bool ripeti, bool modello)
     {
         buttonAvvia.gameObject.SetActive(avvia);
-        buttonStop.gameObject.SetActive(stop);
         buttonSalva.gameObject.SetActive(salva);
         buttonRipeti.gameObject.SetActive(ripeti);
         viewportModello3D.SetActive(modello);
+        if (textTimer != null)
+            textTimer.gameObject.SetActive(timer);
     }
 }

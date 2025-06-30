@@ -81,7 +81,7 @@ def preprocess(data):
     else:
         print(f"✅ Sequenza già di lunghezza {SEQ_LEN}")
      
-    #data = align_pose_down(data)
+    data = align_pose_down(data)
     data = normalize_skeleton(data)
 
     mean = data.mean(axis=(0, 1), keepdims=True)

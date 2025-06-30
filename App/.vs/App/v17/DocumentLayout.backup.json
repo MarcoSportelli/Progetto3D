@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{AE7B358D-41DB-DB61-F0A3-9D1388D225C4}|Utils.csproj|c:\\users\\markd\\documents\\github\\progetto3d\\app\\assets\\realsensesdk2.0\\misc\\utils\\rsdevicelistener.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AE7B358D-41DB-DB61-F0A3-9D1388D225C4}|Utils.csproj|solutionrelative:assets\\realsensesdk2.0\\misc\\utils\\rsdevicelistener.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|c:\\users\\markd\\documents\\github\\progetto3d\\app\\assets\\script\\predictionhistoryviewer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{04505FE4-28F4-C528-F177-7CBBC89B6056}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\predictionhistoryviewer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
@@ -19,12 +23,25 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "RsDeviceListener.cs",
+              "DocumentMoniker": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\RealSenseSDK2.0\\Misc\\Utils\\RsDeviceListener.cs",
+              "RelativeDocumentMoniker": "Assets\\RealSenseSDK2.0\\Misc\\Utils\\RsDeviceListener.cs",
+              "ToolTip": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\RealSenseSDK2.0\\Misc\\Utils\\RsDeviceListener.cs",
+              "RelativeToolTip": "Assets\\RealSenseSDK2.0\\Misc\\Utils\\RsDeviceListener.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-30T13:37:02.39Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "PredictionHistoryViewer.cs",
               "DocumentMoniker": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\PredictionHistoryViewer.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\PredictionHistoryViewer.cs",
               "ToolTip": "C:\\Users\\markd\\Documents\\GitHub\\Progetto3D\\App\\Assets\\Script\\PredictionHistoryViewer.cs",
               "RelativeToolTip": "Assets\\Script\\PredictionHistoryViewer.cs",
-              "ViewState": "AgIAAH0AAAAAAAAAAAAUwIkAAABuAAAAAAAAAA==",
+              "ViewState": "AgIAANwAAAAAAAAAAABBwN0AAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-27T09:52:13.176Z",
               "EditorCaption": ""
