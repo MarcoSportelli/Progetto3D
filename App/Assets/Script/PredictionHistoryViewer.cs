@@ -183,6 +183,10 @@ public class PredictionHistoryViewer : MonoBehaviour
         UpdateScrollView(filteredList);
     }
 
+   [Header("UI Settings")]
+    public int contentFontSize = 30; 
+
+    
     private void UpdateScrollView(List<SinglePrediction> predictionsToShow)
     {
         Debug.Log("📜 Aggiornamento della scroll view con i dati filtrati");
@@ -194,13 +198,12 @@ public class PredictionHistoryViewer : MonoBehaviour
 
         if (predictionsToShow.Count == 0)
         {
-            Debug.Log("ℹ️ Nessuna predizione disponibile, mostro messaggio vuoto");
             GameObject emptyMessage = new GameObject("EmptyMessage");
             emptyMessage.transform.SetParent(scrollViewContent.transform);
             Text textComponent = emptyMessage.AddComponent<Text>();
             textComponent.text = "Nessun dato disponibile";
             textComponent.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            textComponent.fontSize = 24;
+            textComponent.fontSize = contentFontSize; 
             textComponent.color = Color.gray;
             textComponent.alignment = TextAnchor.MiddleCenter;
             return;
@@ -216,6 +219,12 @@ public class PredictionHistoryViewer : MonoBehaviour
 
             if (texts.Length >= 3)
             {
+                // Applica il font size configurabile a tutti i testi
+                foreach (Text text in texts)
+                {
+                    text.fontSize = contentFontSize;
+                }
+                
                 texts[0].text = FormatTimestamp(pred.timestamp);
                 texts[1].text = $"{FormatMovementName(pred.predizione)} ({pred.gamba.ToUpper()})";
                 texts[2].text = $"Angolo: {pred.angolo:F1}°";
