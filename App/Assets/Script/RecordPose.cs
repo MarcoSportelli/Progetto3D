@@ -186,7 +186,20 @@ public class RecordPose : MonoBehaviour
         LeggiPredizioneEAggiornaUI();
         if (predizioneReader != null)
             predizioneReader.LeggiEAvvia();
-
+        // Elimina il file .bag dopo estrazione e inferenza
+        string videoFilePath = Path.Combine(dataPath, $"{currentRecordingTimestamp}.bag");
+        if (File.Exists(videoFilePath))
+        {
+            try
+            {
+                File.Delete(videoFilePath);
+                UnityEngine.Debug.Log($"🗑️ File .bag cancellato: {videoFilePath}");
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError($"❌ Errore nella cancellazione del file .bag: {e.Message}");
+            }
+        }
         UpdateStatus("Analisi completata!");
     }
     IEnumerator RunLandmarkExtraction()
