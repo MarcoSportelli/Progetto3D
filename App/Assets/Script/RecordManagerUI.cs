@@ -13,7 +13,7 @@ public class RecordManagerUI : MonoBehaviour
     public GameObject viewportModello3D;
 
     [Header("UI Canvas")]
-    public GameObject canvasCamera; // AGGIUNGI QUESTO
+    public GameObject canvasCamera;
 
     [Header("Controllo Registrazione")]
     public RecordPose recordPose;
@@ -23,21 +23,104 @@ public class RecordManagerUI : MonoBehaviour
 
     void Start()
     {
-        buttonAvvia.gameObject.SetActive(true);
-        buttonStop.gameObject.SetActive(false);
-        buttonSalva.gameObject.SetActive(false);
-        buttonRipeti.gameObject.SetActive(false);
-        buttonNuovaRegistrazione.gameObject.SetActive(false);
-        viewportModello3D.SetActive(false);
+        // Controlla se siamo nella scena corretta
+        string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentScene != "Registrazione")
+        {
+            Debug.Log($"RecordManagerUI non necessario nella scena {currentScene}");
+            gameObject.SetActive(false);
+            return;
+        }
+
+        // Controlli di sicurezza per tutti i componenti
+        if (!ValidateComponents())
+        {
+            Debug.LogError("RecordManagerUI: Alcuni componenti non sono assegnati!");
+            return;
+        }
+
+        // Setup iniziale dei bottoni
+        SetupInitialState();
+        
+        // Assegna i listener ai bottoni
+        SetupButtonListeners();
+    }
+
+    bool ValidateComponents()
+    {
+        bool isValid = true;
+
+        if (buttonAvvia == null)
+        {
+            Debug.LogWarning("RecordManagerUI: buttonAvvia non assegnato!");
+            isValid = false;
+        }
+
+        if (buttonStop == null)
+        {
+            Debug.LogWarning("RecordManagerUI: buttonStop non assegnato!");
+            isValid = false;
+        }
+
+        if (buttonSalva == null)
+        {
+            Debug.LogWarning("RecordManagerUI: buttonSalva non assegnato!");
+            isValid = false;
+        }
+
+        if (buttonRipeti == null)
+        {
+            Debug.LogWarning("RecordManagerUI: buttonRipeti non assegnato!");
+            isValid = false;
+        }
+
+        if (buttonNuovaRegistrazione == null)
+        {
+            Debug.LogWarning("RecordManagerUI: buttonNuovaRegistrazione non assegnato!");
+            isValid = false;
+        }
+
+        if (viewportModello3D == null)
+        {
+            Debug.LogWarning("RecordManagerUI: viewportModello3D non assegnato!");
+            isValid = false;
+        }
+
+        if (recordPose == null)
+        {
+            Debug.LogWarning("RecordManagerUI: recordPose non assegnato!");
+            isValid = false;
+        }
+
+        if (rsDevice == null)
+        {
+            Debug.LogWarning("RecordManagerUI: rsDevice non assegnato!");
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    void SetupInitialState()
+    {
+        if (buttonAvvia != null) buttonAvvia.gameObject.SetActive(true);
+        if (buttonStop != null) buttonStop.gameObject.SetActive(false);
+        if (buttonSalva != null) buttonSalva.gameObject.SetActive(false);
+        if (buttonRipeti != null) buttonRipeti.gameObject.SetActive(false);
+        if (buttonNuovaRegistrazione != null) buttonNuovaRegistrazione.gameObject.SetActive(false);
+        if (viewportModello3D != null) viewportModello3D.SetActive(false);
 
         if (canvasCamera != null)
             canvasCamera.SetActive(true);
+    }
 
-        buttonAvvia.onClick.AddListener(AvviaRegistrazione);
-        buttonStop.onClick.AddListener(StoppaRegistrazione);
-        buttonSalva.onClick.AddListener(SalvaRegistrazione);
-        buttonRipeti.onClick.AddListener(RipetiRegistrazione);
-        buttonNuovaRegistrazione.onClick.AddListener(ResetUI);
+    void SetupButtonListeners()
+    {
+        if (buttonAvvia != null) buttonAvvia.onClick.AddListener(AvviaRegistrazione);
+        if (buttonStop != null) buttonStop.onClick.AddListener(StoppaRegistrazione);
+        if (buttonSalva != null) buttonSalva.onClick.AddListener(SalvaRegistrazione);
+        if (buttonRipeti != null) buttonRipeti.onClick.AddListener(RipetiRegistrazione);
+        if (buttonNuovaRegistrazione != null) buttonNuovaRegistrazione.onClick.AddListener(ResetUI);
     }
 
     void AvviaRegistrazione()
@@ -87,7 +170,10 @@ public class RecordManagerUI : MonoBehaviour
 
     IEnumerator SalvaRegistrazioneCoroutine()
     {
-        yield return StartCoroutine(recordPose.ExtractAndInfer());
+        if (recordPose != null)
+        {
+            yield return StartCoroutine(recordPose.ExtractAndInfer());
+        }
         // canvasCamera resta disattivo finché modello attivo
         ToggleButtons(avvia: false, stop: false, salva: false, ripeti: false, modello: true, nuova: true);
     }
@@ -108,6 +194,7 @@ public class RecordManagerUI : MonoBehaviour
 
     void ToggleButtons(bool avvia, bool stop, bool salva, bool ripeti, bool modello, bool nuova)
     {
+        // Versione originale senza controlli null per mantenere la funzionalità
         buttonAvvia.gameObject.SetActive(avvia);
         buttonStop.gameObject.SetActive(stop);
         buttonSalva.gameObject.SetActive(salva);
