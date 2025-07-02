@@ -154,13 +154,6 @@ if collected_frames:
     np.save(output_path_leg, arr)
     if verbose:
         print(f"✅ Salvato {arr.shape} in {output_path_leg}")
-    # Cancella il file .bag dopo il salvataggio
-    try:
-        os.remove(bag_path)
-        if verbose:
-            print(f"🗑️ File .bag cancellato: {bag_path}")
-    except Exception as e:
-        print(f"❌ Errore nella cancellazione del file .bag: {e}")
 else:
     if verbose:
         print("❌ Nessun frame utile trovato.")
