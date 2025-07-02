@@ -177,4 +177,44 @@ public class RsDevice : RsFrameProvider
         }
     }
 
+    public void RestartPipeline()
+    {
+        // Ferma la pipeline se attiva
+        if (worker != null)
+        {
+            stopEvent.Set();
+            worker.Join();
+            worker = null;
+        }
+        if (Streaming && OnStop != null)
+            OnStop();
+
+        if (ActiveProfile != null)
+        {
+            ActiveProfile.Dispose();
+            ActiveProfile = null;
+        }
+        if (m_pipeline != null)
+        {
+            m_pipeline.Dispose();
+            m_pipeline = null;
+        }
+
+        // Ricrea pipeline e riparti con la nuova configurazione
+        m_pipeline = new Pipeline();
+        using (var cfg = DeviceConfiguration.ToPipelineConfig())
+            ActiveProfile = m_pipeline.Start(cfg);
+
+        DeviceConfiguration.Profiles = ActiveProfile.Streams.Select(RsVideoStreamRequest.FromProfile).ToArray();
+
+        if (processMode == ProcessMode.Multithread)
+        {
+            stopEvent.Reset();
+            worker = new Thread(WaitForFrames);
+            worker.IsBackground = true;
+            worker.Start();
+        }
+
+        StartCoroutine(WaitAndStart());
+    }
 }

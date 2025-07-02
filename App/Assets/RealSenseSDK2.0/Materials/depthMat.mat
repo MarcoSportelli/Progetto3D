@@ -34,7 +34,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Colormap: 4
+    - _Colormap: 3
     - _DepthScale: 0.001
     - _MaxRange: 20
     - _MinRange: 0

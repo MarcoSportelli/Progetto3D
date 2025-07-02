@@ -10,16 +10,16 @@ import mediapipe as mp
 #     print("Usage: python extract_leg_landmarks.py input_file.bag output_file.npy [left|right]")
 #     sys.exit(1)
 
-# bag_path = sys.argv[1]
-# output_path = sys.argv[2]
-# leg = sys.argv[3].lower()
+bag_path = sys.argv[1]
+output_path = sys.argv[2]
+leg = sys.argv[3].lower()
 
-bag_path = "../App/data/20250630_040809.bag"  # Cambia con il tuo file
-output_path = "../incoming_data/output.npy"
-leg = "left"  # Cambiacon "left" o "right"
+#bag_path = "./2s_test.bag"  # Cambia con il tuo file
+#output_path = "../incoming_data/output.npy"
+#leg = "left"  # Cambiacon "left" o "right"
 
 SEQ_LEN = 50
-verbose = True  # Imposta a True per vedere stampe e immagini
+verbose = False  # Imposta a True per vedere stampe e immagini
 
 if leg not in ["left", "right"]:
     if verbose:
@@ -154,6 +154,13 @@ if collected_frames:
     np.save(output_path_leg, arr)
     if verbose:
         print(f"✅ Salvato {arr.shape} in {output_path_leg}")
+    # Cancella il file .bag dopo il salvataggio
+    try:
+        os.remove(bag_path)
+        if verbose:
+            print(f"🗑️ File .bag cancellato: {bag_path}")
+    except Exception as e:
+        print(f"❌ Errore nella cancellazione del file .bag: {e}")
 else:
     if verbose:
         print("❌ Nessun frame utile trovato.")

@@ -44,13 +44,13 @@ public class RecordManagerUI : MonoBehaviour
     {
         if (rsDevice != null && recordPose != null)
         {
-            // Usa lo stesso timestamp di RecordPose per coerenza
             recordPose.isLeftLeg = recordPose.leftLegToggle != null ? recordPose.leftLegToggle.isOn : true;
             recordPose.currentRecordingTimestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss") + (recordPose.isLeftLeg ? "_left" : "_right");
             string videoFilePath = System.IO.Path.Combine(recordPose.dataPath, $"{recordPose.currentRecordingTimestamp}.bag");
 
             rsDevice.DeviceConfiguration.RecordPath = videoFilePath;
             rsDevice.DeviceConfiguration.mode = RsConfiguration.Mode.Record;
+            rsDevice.RestartPipeline();
             Debug.Log("[RecordManagerUI] Modalità RsDevice: " + rsDevice.DeviceConfiguration.mode + " | Path: " + videoFilePath);
         }
 
@@ -65,6 +65,7 @@ public class RecordManagerUI : MonoBehaviour
         if (rsDevice != null)
         {
             rsDevice.DeviceConfiguration.mode = RsConfiguration.Mode.Live;
+            rsDevice.RestartPipeline(); 
             Debug.Log("[RecordManagerUI] Modalità RsDevice: " + rsDevice.DeviceConfiguration.mode);
         }
 
