@@ -5,9 +5,8 @@ using System;
 public class PredizioneReader : MonoBehaviour
 {
     public ControlloAnimazioniGambe controlloAnimazioni;
+    public RecordPose recordPose; // Assegna dall'Inspector!
     private string lastJson = "";
-
-    // Rimuovi Update e usa solo LeggiEAvvia
 
     public void LeggiEAvvia()
     {
@@ -37,7 +36,8 @@ public class PredizioneReader : MonoBehaviour
                         predizione = pred.predizione,
                         angolo = pred.angolo,
                         gamba = pred.gamba,
-                        timestamp = timestamp
+                        timestamp = timestamp,
+                        feedback = pred.feedback // Aggiungi il campo feedback
                     };
 
                     try
@@ -55,9 +55,18 @@ public class PredizioneReader : MonoBehaviour
                     catch { }
 
                     if (!string.IsNullOrEmpty(pred.predizione) && !string.IsNullOrEmpty(pred.gamba))
+                    {
                         controlloAnimazioni.AvviaAnimazione(pred.gamba, pred.predizione);
+                        // Aggiorna lo status in RecordPose
+                        if (recordPose != null)
+                            recordPose.UpdateStatus($"Movimento: {pred.predizione} \n Angolo: {pred.angolo:F1}° \n Feedback: {pred.feedback}");
+                    }
                 }
-                catch { }
+                catch (Exception e)
+                {
+                    if (recordPose != null)
+                        recordPose.UpdateStatus("Errore lettura predizione: " + e.Message);
+                }
             }
         }
     }
@@ -69,5 +78,6 @@ public class Predizione
     public string predizione;
     public float angolo;
     public string gamba;
-    public string timestamp; // Aggiunto per tenere traccia del momento della predizione
+    public string feedback; // <--- aggiungi questo campo
+    public string timestamp; // <--- aggiungi questo campo
 }

@@ -27,10 +27,15 @@ public class RecordPose : MonoBehaviour
     private string pythonExtractExe;
     private string serverScriptPath;
     public event Action OnRecordingFinished;
-    public PredizioneReader predizioneReader; // Assegna dall’Inspector!
+    public PredizioneReader predizioneReader; 
+
+    [Header("UI Loading Spinner")]
+    [SerializeField] private GameObject loadingSpinner;
+
     void Start()
     {
         InitializePaths();
+
 
         if (leftLegToggle != null)
         {
@@ -66,7 +71,7 @@ public class RecordPose : MonoBehaviour
         UnityEngine.Debug.Log($"[ToggleLegSide] Nuovo valore -> isLeftLeg: {isLeftLeg}");
     }
 
-    void UpdateStatus(string message)
+    public void UpdateStatus(string message)
     {
         if (statusText != null)
             statusText.text = message;
@@ -181,8 +186,17 @@ public class RecordPose : MonoBehaviour
 */
     public IEnumerator ExtractAndInfer()
     {
+        if (loadingSpinner != null)
+            loadingSpinner.SetActive(true);
+
+        if (leftLegToggle != null)
+            leftLegToggle.gameObject.SetActive(false);
+
         yield return StartCoroutine(RunLandmarkExtraction());
         yield return StartCoroutine(RunServerInference());
+        if (loadingSpinner != null)
+            loadingSpinner.SetActive(false);
+
         LeggiPredizioneEAggiornaUI();
         if (predizioneReader != null)
             predizioneReader.LeggiEAvvia();
@@ -200,7 +214,6 @@ public class RecordPose : MonoBehaviour
                 UnityEngine.Debug.LogError($"❌ Errore nella cancellazione del file .bag: {e.Message}");
             }
         }
-        UpdateStatus("Analisi completata!");
     }
     IEnumerator RunLandmarkExtraction()
     {

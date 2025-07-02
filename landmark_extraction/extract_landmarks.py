@@ -107,6 +107,7 @@ try:
             for idx in landmarks_ids:
                 lm = results.pose_landmarks.landmark[idx]
                 cx, cy = int(lm.x * w), int(lm.y * h)
+              
                 # Prendi la profondità reale dalla depth map (in metri)
                 if 0 <= cy < depth_in_mm.shape[0] and 0 <= cx < depth_in_mm.shape[1]:
                     real_z = depth_in_mm[cy, cx] / 1000.0  # da mm a metri
@@ -114,7 +115,8 @@ try:
                         real_z = float(lm.z)  # fallback se la depth è nulla
                 else:
                     real_z = float(lm.z)  # fallback se out of bounds
-                frame_landmarks.append([lm.x, lm.y, real_z])
+                    
+                frame_landmarks.append([lm.x, lm.y, lm.z])  # Usa solo lm.z, ignora la profondità reale
                 if verbose:
                     cv2.circle(color_image, (cx, cy), 6, (0, 255, 0), -1)
 

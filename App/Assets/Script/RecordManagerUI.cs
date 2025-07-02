@@ -21,6 +21,9 @@ public class RecordManagerUI : MonoBehaviour
     [Header("RealSense Device")]
     public RsDevice rsDevice;
 
+    [SerializeField] private GameObject loadingSpinner;
+
+
     void Start()
     {
         // Controlla se siamo nella scena corretta
@@ -38,6 +41,7 @@ public class RecordManagerUI : MonoBehaviour
             Debug.LogError("RecordManagerUI: Alcuni componenti non sono assegnati!");
             return;
         }
+
 
         // Setup iniziale dei bottoni
         SetupInitialState();
@@ -110,6 +114,13 @@ public class RecordManagerUI : MonoBehaviour
         if (buttonNuovaRegistrazione != null) buttonNuovaRegistrazione.gameObject.SetActive(false);
         if (viewportModello3D != null) viewportModello3D.SetActive(false);
 
+        if (loadingSpinner != null)
+            loadingSpinner.SetActive(false);
+
+        if (recordPose != null)
+            recordPose.leftLegToggle.gameObject.SetActive(true);
+    
+        
         if (canvasCamera != null)
             canvasCamera.SetActive(true);
     }
@@ -188,6 +199,12 @@ public class RecordManagerUI : MonoBehaviour
         // Stato di default: solo Avvia attivo, modello nascosto, canvasCamera attivo
         if (canvasCamera != null)
             canvasCamera.SetActive(true);
+
+        if (recordPose != null)
+            recordPose.leftLegToggle.gameObject.SetActive(true);
+
+        if (recordPose != null)
+            recordPose.UpdateStatus("Pronto");
 
         ToggleButtons(avvia: true, stop: false, salva: false, ripeti: false, modello: false, nuova: false);
     }
