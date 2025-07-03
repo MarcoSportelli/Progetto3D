@@ -10,7 +10,6 @@ public class UIController : MonoBehaviour
 
     [Header("Bottoni Registrazione")]
     public GameObject buttonStart;
-    public GameObject buttonStop;
     public GameObject buttonSave;
     public GameObject buttonToggleLeg;
     public GameObject viewportModello3D;
@@ -59,7 +58,6 @@ public class UIController : MonoBehaviour
         
         // Mostra bottoni di registrazione nello stato iniziale
         if (buttonStart != null) buttonStart.SetActive(true);
-        if (buttonStop != null) buttonStop.SetActive(false);
         if (buttonSave != null) buttonSave.SetActive(false);
         if (buttonToggleLeg != null) buttonToggleLeg.SetActive(true);
         if (viewportModello3D != null) viewportModello3D.SetActive(false);
@@ -120,7 +118,6 @@ public class UIController : MonoBehaviour
     {
         // Controlla se gli oggetti esistono prima di usarli
         if (buttonStart != null) buttonStart.SetActive(!visible);
-        if (buttonStop != null) buttonStop.SetActive(visible);
         if (buttonSave != null) buttonSave.SetActive(visible);
         if (buttonToggleLeg != null) buttonToggleLeg.SetActive(visible);
     }
@@ -129,21 +126,18 @@ public class UIController : MonoBehaviour
     public void StartRecording()
     {
         if (buttonStart != null) buttonStart.SetActive(false);
-        if (buttonStop != null) buttonStop.SetActive(true);
         if (buttonSave != null) buttonSave.SetActive(false);
     }
 
     public void StopRecording()
     {
         if (buttonStart != null) buttonStart.SetActive(true);
-        if (buttonStop != null) buttonStop.SetActive(false);
         if (buttonSave != null) buttonSave.SetActive(true);
     }
 
     public void SaveRecording()
     {
         if (buttonStart != null) buttonStart.SetActive(true);
-        if (buttonStop != null) buttonStop.SetActive(false);
         if (buttonSave != null) buttonSave.SetActive(false);
-    }
+    }    
 }

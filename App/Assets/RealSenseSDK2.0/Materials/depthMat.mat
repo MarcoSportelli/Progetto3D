@@ -13,7 +13,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
-  - _COLORMAP_RAINBOW
+  - _COLORMAP_JET
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -36,7 +36,7 @@ Material:
     m_Floats:
     - _Colormap: 3
     - _DepthScale: 0.001
-    - _MaxRange: 20
+    - _MaxRange: 0.8385707
     - _MinRange: 0
     m_Colors: []
   m_BuildTextureStacks: []

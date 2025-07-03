@@ -6,7 +6,6 @@ public class RecordManagerUI : MonoBehaviour
 {
     [Header("UI Buttons")]
     public Button buttonAvvia;
-    public Button buttonStop;
     public Button buttonSalva;
     public Button buttonRipeti;
     public Button buttonNuovaRegistrazione; 
@@ -23,7 +22,9 @@ public class RecordManagerUI : MonoBehaviour
 
     [SerializeField] private GameObject loadingSpinner;
 
-
+    [Header("Timer UI")]
+    public Text preRecordTimerText;
+    public Text recordTimerText;
     void Start()
     {
         // Controlla se siamo nella scena corretta
@@ -57,12 +58,6 @@ public class RecordManagerUI : MonoBehaviour
         if (buttonAvvia == null)
         {
             Debug.LogWarning("RecordManagerUI: buttonAvvia non assegnato!");
-            isValid = false;
-        }
-
-        if (buttonStop == null)
-        {
-            Debug.LogWarning("RecordManagerUI: buttonStop non assegnato!");
             isValid = false;
         }
 
@@ -108,7 +103,6 @@ public class RecordManagerUI : MonoBehaviour
     void SetupInitialState()
     {
         if (buttonAvvia != null) buttonAvvia.gameObject.SetActive(true);
-        if (buttonStop != null) buttonStop.gameObject.SetActive(false);
         if (buttonSalva != null) buttonSalva.gameObject.SetActive(false);
         if (buttonRipeti != null) buttonRipeti.gameObject.SetActive(false);
         if (buttonNuovaRegistrazione != null) buttonNuovaRegistrazione.gameObject.SetActive(false);
@@ -119,23 +113,55 @@ public class RecordManagerUI : MonoBehaviour
 
         if (recordPose != null)
             recordPose.leftLegToggle.gameObject.SetActive(true);
-    
-        
+
         if (canvasCamera != null)
             canvasCamera.SetActive(true);
+
+        // Nascondi i timer all'avvio
+        if (preRecordTimerText != null)
+            preRecordTimerText.gameObject.SetActive(false);
+        if (recordTimerText != null)
+            recordTimerText.gameObject.SetActive(false);
     }
 
     void SetupButtonListeners()
     {
         if (buttonAvvia != null) buttonAvvia.onClick.AddListener(AvviaRegistrazione);
-        if (buttonStop != null) buttonStop.onClick.AddListener(StoppaRegistrazione);
         if (buttonSalva != null) buttonSalva.onClick.AddListener(SalvaRegistrazione);
         if (buttonRipeti != null) buttonRipeti.onClick.AddListener(RipetiRegistrazione);
         if (buttonNuovaRegistrazione != null) buttonNuovaRegistrazione.onClick.AddListener(ResetUI);
     }
-
     void AvviaRegistrazione()
     {
+        StartCoroutine(AvviaRegistrazioneCoroutine());
+    }
+
+    IEnumerator AvviaRegistrazioneCoroutine()
+    {
+        // Mostra pre-record timer
+        if (preRecordTimerText != null)
+            preRecordTimerText.gameObject.SetActive(true);
+        if (recordTimerText != null)
+            recordTimerText.gameObject.SetActive(false);
+
+        // Countdown di 3 secondi
+        float preRecordTime = 3f;
+        float t = preRecordTime;
+        while (t > 0)
+        {
+            if (preRecordTimerText != null)
+                preRecordTimerText.text = $"Inizio tra {Mathf.CeilToInt(t)}...";
+            yield return new WaitForSeconds(1f);
+            t -= 1f;
+        }
+        if (preRecordTimerText != null)
+        {
+            preRecordTimerText.text = "Via!";
+            yield return new WaitForSeconds(0.5f);
+            preRecordTimerText.gameObject.SetActive(false);
+        }
+
+        // Avvia la registrazione vera e propria
         if (rsDevice != null && recordPose != null)
         {
             recordPose.isLeftLeg = recordPose.leftLegToggle != null ? recordPose.leftLegToggle.isOn : true;
@@ -151,9 +177,26 @@ public class RecordManagerUI : MonoBehaviour
         if (canvasCamera != null)
             canvasCamera.SetActive(true);
 
-        ToggleButtons(avvia: false, stop: true, salva: false, ripeti: false, modello: false, nuova: false);
-    }
+        ToggleButtons(avvia: false, stop: false, salva: false, ripeti: false, modello: false, nuova: false);
 
+        // Mostra record timer
+        if (recordTimerText != null)
+        {
+            recordTimerText.gameObject.SetActive(true);
+            float recordTime = 7f;
+            float elapsed = 0f;
+            while (elapsed < recordTime)
+            {
+                recordTimerText.text = $"Registrazione: {Mathf.CeilToInt(recordTime - elapsed)}s";
+                yield return new WaitForSeconds(1f);
+                elapsed += 1f;
+            }
+            recordTimerText.gameObject.SetActive(false);
+        }
+
+        // Stoppa la registrazione automaticamente dopo 5 secondi
+        StoppaRegistrazione();
+    }
     void StoppaRegistrazione()
     {
         if (rsDevice != null)
@@ -211,9 +254,7 @@ public class RecordManagerUI : MonoBehaviour
 
     void ToggleButtons(bool avvia, bool stop, bool salva, bool ripeti, bool modello, bool nuova)
     {
-        // Versione originale senza controlli null per mantenere la funzionalità
         buttonAvvia.gameObject.SetActive(avvia);
-        buttonStop.gameObject.SetActive(stop);
         buttonSalva.gameObject.SetActive(salva);
         buttonRipeti.gameObject.SetActive(ripeti);
         viewportModello3D.SetActive(modello);

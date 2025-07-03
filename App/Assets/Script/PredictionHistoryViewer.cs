@@ -11,6 +11,8 @@ public class SinglePrediction
     public float angolo;
     public string gamba;
     public string timestamp;
+    public string feedback; // <--- aggiunto
+
 }
 
 public class PredictionHistoryViewer : MonoBehaviour
@@ -184,9 +186,8 @@ public class PredictionHistoryViewer : MonoBehaviour
     }
 
    [Header("UI Settings")]
-    public int contentFontSize = 30; 
+    public int contentFontSize = 18; 
 
-    
     private void UpdateScrollView(List<SinglePrediction> predictionsToShow)
     {
         Debug.Log("📜 Aggiornamento della scroll view con i dati filtrati");
@@ -217,7 +218,7 @@ public class PredictionHistoryViewer : MonoBehaviour
 
             Text[] texts = newItem.GetComponentsInChildren<Text>();
 
-            if (texts.Length >= 3)
+            if (texts.Length >= 4)
             {
                 // Applica il font size configurabile a tutti i testi
                 foreach (Text text in texts)
@@ -228,17 +229,17 @@ public class PredictionHistoryViewer : MonoBehaviour
                 texts[0].text = FormatTimestamp(pred.timestamp);
                 texts[1].text = $"{FormatMovementName(pred.predizione)} ({pred.gamba.ToUpper()})";
                 texts[2].text = $"Angolo: {pred.angolo:F1}°";
+                texts[3].text = $"Feedback: {pred.feedback}";
             }
             else
             {
-                Debug.LogError("❌ Il prefab dell'elemento della lista non ha almeno 3 componenti Text!");
+                Debug.LogError("❌ Il prefab dell'elemento della lista non ha almeno 4 componenti Text!");
             }
         }
 
         Canvas.ForceUpdateCanvases();
         Debug.Log("✅ Scroll view aggiornata");
     }
-
     private string FormatTimestamp(string originalTimestamp)
     {
         try
