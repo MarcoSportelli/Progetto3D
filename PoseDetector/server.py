@@ -93,27 +93,30 @@ def preprocess(data):
     return data.reshape(SEQ_LEN, -1).astype(np.float32)
 
 def get_feedback(class_name, frame):
-    target_angles = {
-        'flessione_indietro': 45.0,
-        'flessione_avanti': 60.0,
-        'estensione_gamba': 170.0,
-        'squat': 90.0
+    # Range fisiologici (min, max)
+    target_ranges = {
+        'flessione_indietro': (135, 145),
+        'flessione_avanti': (120, 160),
+        'estensione_gamba': (0, 180),  # <180, quindi massimo fisiologico 180
+        'squat': (110, 135)
     }
 
     hip, knee, ankle = frame[0], frame[1], frame[2]
 
+    # Calcola l'angolo esterno: 180 - angolo tra tibia e femore
+    angle = 180 - calculate_angle(hip, knee, ankle)
+    min_target, max_target = target_ranges.get(class_name, (0, 180))
 
-    angle = calculate_angle(hip, knee, ankle)
-    target = target_angles.get(class_name, 90)
-    diff = target - angle
+    if angle < min_target:
+        return f"Angolo troppo piccolo: {angle:.1f}° (Range fisiologico: {min_target}-{max_target}°)"
+    elif angle > max_target:
+        return f"ERRORE: Angolo troppo grande: {angle:.1f}° (Range fisiologico: {min_target}-{max_target}°)"
+    else:
+        return f"Movimento corretto! ({angle:.1f}° nel range {min_target}-{max_target}°)"
 
-    if diff > 1:
-        return f"Ti mancano {diff:.1f}° di {class_name.replace('_', ' ')}"
-    return "Movimento corretto!"
 
 
 print("✅ Model server running. Watching for .npy files...")
-
 
 files = [f for f in os.listdir(WATCH_DIR) if f.endswith(".npy")]
 for fname in files:

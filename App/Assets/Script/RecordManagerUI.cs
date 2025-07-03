@@ -161,19 +161,7 @@ public class RecordManagerUI : MonoBehaviour
             preRecordTimerText.gameObject.SetActive(false);
         }
 
-        // Avvia la registrazione vera e propria
-        if (rsDevice != null && recordPose != null)
-        {
-            recordPose.isLeftLeg = recordPose.leftLegToggle != null ? recordPose.leftLegToggle.isOn : true;
-            recordPose.currentRecordingTimestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss") + (recordPose.isLeftLeg ? "_left" : "_right");
-            string videoFilePath = System.IO.Path.Combine(recordPose.dataPath, $"{recordPose.currentRecordingTimestamp}.bag");
-
-            rsDevice.DeviceConfiguration.RecordPath = videoFilePath;
-            rsDevice.DeviceConfiguration.mode = RsConfiguration.Mode.Record;
-            rsDevice.RestartPipeline();
-            Debug.Log("[RecordManagerUI] Modalità RsDevice: " + rsDevice.DeviceConfiguration.mode + " | Path: " + videoFilePath);
-        }
-
+        
         if (canvasCamera != null)
             canvasCamera.SetActive(true);
 
@@ -199,13 +187,7 @@ public class RecordManagerUI : MonoBehaviour
     }
     void StoppaRegistrazione()
     {
-        if (rsDevice != null)
-        {
-            rsDevice.DeviceConfiguration.mode = RsConfiguration.Mode.Live;
-            rsDevice.RestartPipeline(); 
-            Debug.Log("[RecordManagerUI] Modalità RsDevice: " + rsDevice.DeviceConfiguration.mode);
-        }
-
+        
         if (canvasCamera != null)
             canvasCamera.SetActive(true);
 
