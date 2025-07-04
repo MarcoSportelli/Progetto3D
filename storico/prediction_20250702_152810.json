@@ -1,7 +1,7 @@
 {
     "predizione": "flessione_indietro",
-    "angolo": 42.0,
+    "angolo": 138.0,
     "gamba": "sx",
-    "feedback": "Movimento corretto!",
+    "feedback": "Correct movement! (138.0\u00b0 in range 134-145\u00b0)",
     "timestamp": "2025-07-02 15:28:10"
 }

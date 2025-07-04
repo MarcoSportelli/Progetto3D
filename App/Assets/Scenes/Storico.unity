@@ -1649,7 +1649,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Flessione Indietro
+  m_text: Backward knee flexion
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1989,6 +1989,7 @@ MonoBehaviour:
   btnToggleOrder: {fileID: 1606043825}
   scrollViewContent: {fileID: 1518324990}
   predictionItemPrefab: {fileID: 4275459052719853016, guid: b3c3a1a3b4361d74493fe94bad50d308, type: 3}
+  contentFontSize: 18
 --- !u!1 &1261848088
 GameObject:
   m_ObjectHideFlags: 0
@@ -2218,6 +2219,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controlloAnimazioni: {fileID: 1848319737}
+  recordPose: {fileID: 0}
 --- !u!4 &1321882381
 Transform:
   m_ObjectHideFlags: 0
@@ -2627,7 +2629,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Estensione
+  m_text: Seated leg extension
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3369,6 +3371,7 @@ MonoBehaviour:
   currentRecordingTimestamp: 
   dataPath: 
   predizioneReader: {fileID: 1321882380}
+  loadingSpinner: {fileID: 0}
 --- !u!224 &1798369329
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3515,7 +3518,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buttonAvvia: {fileID: 0}
-  buttonStop: {fileID: 0}
   buttonSalva: {fileID: 0}
   buttonRipeti: {fileID: 0}
   buttonNuovaRegistrazione: {fileID: 0}
@@ -3523,6 +3525,9 @@ MonoBehaviour:
   canvasCamera: {fileID: 0}
   recordPose: {fileID: 1798369328}
   rsDevice: {fileID: 0}
+  loadingSpinner: {fileID: 0}
+  preRecordTimerText: {fileID: 0}
+  recordTimerText: {fileID: 0}
 --- !u!1 &1946366983
 GameObject:
   m_ObjectHideFlags: 0
@@ -3736,7 +3741,6 @@ MonoBehaviour:
   panelRegistrazione: {fileID: 0}
   panelStorico: {fileID: 1284238661}
   buttonStart: {fileID: 0}
-  buttonStop: {fileID: 0}
   buttonSave: {fileID: 0}
   buttonToggleLeg: {fileID: 0}
   viewportModello3D: {fileID: 0}
@@ -3889,7 +3893,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Flessione Avanti
+  m_text: Standing hip flexion
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

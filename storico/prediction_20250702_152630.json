@@ -1,7 +1,7 @@
 {
     "predizione": "estensione_gamba",
-    "angolo": 173.45558166503907,
+    "angolo": 173.45558166503906,
     "gamba": "sx",
-    "feedback": "Movimento corretto!",
+    "feedback": "Correct movement! (173.5\u00b0 in range 160-180\u00b0)",
     "timestamp": "2025-07-02 15:26:30"
 }

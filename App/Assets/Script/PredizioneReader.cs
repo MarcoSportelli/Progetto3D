@@ -8,6 +8,15 @@ public class PredizioneReader : MonoBehaviour
     public RecordPose recordPose; // Assegna dall'Inspector!
     private string lastJson = "";
 
+    // Dizionario per traduzione in inglese
+    private static readonly System.Collections.Generic.Dictionary<string, string> CLASS_MAP = new System.Collections.Generic.Dictionary<string, string>
+    {
+        {"flessione_indietro", "Backward knee flexion"},
+        {"flessione_avanti", "Standing hip flexion"},
+        {"estensione_gamba", "Seated leg extension"},
+        {"squat", "Squat"}
+    };
+
     public void LeggiEAvvia()
     {
         if (controlloAnimazioni == null)
@@ -31,13 +40,17 @@ public class PredizioneReader : MonoBehaviour
                 {
                     Predizione pred = JsonUtility.FromJson<Predizione>(json);
                     string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                    // Traduci il nome della classe in inglese per il salvataggio
+                    string predizioneEn = CLASS_MAP.ContainsKey(pred.predizione) ? CLASS_MAP[pred.predizione] : pred.predizione;
+
                     Predizione predConTime = new Predizione
                     {
                         predizione = pred.predizione,
                         angolo = pred.angolo,
                         gamba = pred.gamba,
                         timestamp = timestamp,
-                        feedback = pred.feedback // Aggiungi il campo feedback
+                        feedback = pred.feedback
                     };
 
                     try
@@ -57,15 +70,18 @@ public class PredizioneReader : MonoBehaviour
                     if (!string.IsNullOrEmpty(pred.predizione) && !string.IsNullOrEmpty(pred.gamba))
                     {
                         controlloAnimazioni.AvviaAnimazione(pred.gamba, pred.predizione);
-                        // Aggiorna lo status in RecordPose
+                        // Aggiorna lo status in RecordPose SOLO con nome inglese
                         if (recordPose != null)
-                            recordPose.UpdateStatus($"Movimento: {pred.predizione} \n Angolo: {pred.angolo:F1}° \n Feedback: {pred.feedback}");
+                        {
+                            string predEn = CLASS_MAP.ContainsKey(pred.predizione) ? CLASS_MAP[pred.predizione] : pred.predizione;
+                            recordPose.UpdateStatus($"Movement: {predEn} \n Angle: {pred.angolo:F1}° \n {pred.feedback}");
+                        }
                     }
                 }
                 catch (Exception e)
                 {
                     if (recordPose != null)
-                        recordPose.UpdateStatus("Errore lettura predizione: " + e.Message);
+                        recordPose.UpdateStatus("Prediction read error: " + e.Message);
                 }
             }
         }
@@ -78,6 +94,6 @@ public class Predizione
     public string predizione;
     public float angolo;
     public string gamba;
-    public string feedback; // <--- aggiungi questo campo
-    public string timestamp; // <--- aggiungi questo campo
+    public string feedback;
+    public string timestamp;
 }

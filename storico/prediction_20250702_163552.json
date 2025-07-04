@@ -1,7 +1,7 @@
 {
     "predizione": "estensione_gamba",
-    "angolo": 150.10411071777345,
+    "angolo": 150.10411071777344,
     "gamba": "sx",
-    "feedback": "Ti mancano 19.9° di estensione gamba",
+    "feedback": "Angle too small: 150.1\u00b0 (Physiological range: 160-180\u00b0) | Missing angle: 9.9\u00b0",
     "timestamp": "2025-07-02 16:35:52"
 }

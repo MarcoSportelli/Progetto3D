@@ -11,7 +11,7 @@ public class SinglePrediction
     public float angolo;
     public string gamba;
     public string timestamp;
-    public string feedback; // <--- aggiunto
+    public string feedback; 
 
 }
 
@@ -228,7 +228,7 @@ public class PredictionHistoryViewer : MonoBehaviour
                 
                 texts[0].text = FormatTimestamp(pred.timestamp);
                 texts[1].text = $"{FormatMovementName(pred.predizione)} ({pred.gamba.ToUpper()})";
-                texts[2].text = $"Angolo: {pred.angolo:F1}°";
+                texts[2].text = $"Angle: {pred.angolo:F1}°";
                 texts[3].text = $"Feedback: {pred.feedback}";
             }
             else
@@ -259,9 +259,9 @@ public class PredictionHistoryViewer : MonoBehaviour
         switch (movement)
         {
             case "squat": return "Squat";
-            case "flessione_avanti": return "Flessione Avanti";
-            case "flessione_indietro": return "Flessione Indietro";
-            case "estensione": return "Estensione";
+            case "flessione_avanti": return "Standing hip flexion";
+            case "flessione_indietro": return "Backward knee flexion";
+            case "estensione": return "Seated leg extension";
             default: return movement;
         }
     }

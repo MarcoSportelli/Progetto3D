@@ -1,7 +1,7 @@
 {
     "predizione": "flessione_indietro",
-    "angolo": 50.0,
+    "angolo": 130.0,
     "gamba": "sx",
-    "feedback": "Movimento corretto!",
+    "feedback": "Angle too small: 130.0\u00b0 (Physiological range: 134-145\u00b0) | Missing angle: 4.0\u00b0",
     "timestamp": "2025-07-02 15:31:03"
 }

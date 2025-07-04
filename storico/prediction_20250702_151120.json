@@ -1,7 +1,7 @@
 {
     "predizione": "flessione_avanti",
-    "angolo": 76.30415344238281,
+    "angolo": 103.69584655761719,
     "gamba": "sx",
-    "feedback": "Movimento corretto!",
+    "feedback": "Angle too small: 103.7\u00b0 (Physiological range: 110-140\u00b0) | Missing angle: 6.3\u00b0",
     "timestamp": "2025-07-02 15:11:20"
 }
