@@ -65,7 +65,7 @@ def preprocess(data):
 def get_feedback(class_name, angle):
     # Physiological ranges (min, max)
     target_ranges = {
-        'flessione_indietro': (134, 145),
+        'flessione_indietro': (135, 145),
         'flessione_avanti': (110, 140),
         'estensione_gamba': (160, 180),
         'squat': (90, 135)
