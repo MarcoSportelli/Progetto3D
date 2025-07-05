@@ -38,7 +38,7 @@ BATCH_SIZE = 8
 NUM_EPOCHS = 100
 LR = 5e-4
 WEIGHT_DECAY = 5e-4
-MODEL_NAME = "model_weights_final_v4.pt"
+MODEL_NAME = "model_weights_final_v3.pt"
 
 # 1. Crea il dataset completo SENZA augmentation
 full_dataset = PoseDataset3D(DATA_DIR, LABEL_MAP, seq_len=SEQ_LEN, augment=False)
@@ -75,50 +75,29 @@ print_class_distribution(train_dataset, "train")
 print_class_distribution(val_dataset, "val")
 print_class_distribution(test_dataset, "test")
 
-
-
-#plot_sample(train_dataset, 0, "Train sample (augmented)")
-#plot_sample(val_dataset, 0, "Validation sample (no augmentation)")
-
-
-
-# Esempio d'uso:
-#plot_landmarks_matrix(train_dataset, idx=0, frame=0, title="Train sample - primo frame")
-#plot_landmarks_matrix(val_dataset, idx=0, frame=0, title="Validation sample - primo frame")
-
-# Determina la dimensione dell'input
 sample, _ = full_dataset[0]
 input_size = sample.shape[1]
 
-# Inizializza modello, device e pesi per classi sbilanciate
 model = PoseTransformer3D(input_size=input_size, num_classes=len(LABEL_MAP))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
-num_classes = len(LABEL_MAP)
-class_counts = np.bincount([label for _, label in full_dataset], minlength=num_classes)
-weights = torch.tensor([sum(class_counts) / c if c > 0 else 1 for c in class_counts], dtype=torch.float).to(device)
 
 labels = full_dataset.labels
 sss = StratifiedShuffleSplit(n_splits=1, test_size=0.3, random_state=42)
 train_idx, temp_idx = next(sss.split(np.zeros(len(labels)), labels))
 
-# Ora splitta temp_idx in val e test, sempre stratificato
 temp_labels = [labels[i] for i in temp_idx]
 sss2 = StratifiedShuffleSplit(n_splits=1, test_size=0.5, random_state=42)
 val_idx, test_idx = next(sss2.split(np.zeros(len(temp_labels)), temp_labels))
 val_indices = [temp_idx[i] for i in val_idx]
 test_indices = [temp_idx[i] for i in test_idx]
 
-# Ora hai:
-# train_indices, val_indices, test_indices
 
 labels = [train_dataset.dataset.labels[i] for i in train_dataset.indices]
 class_weights = compute_class_weight('balanced', classes=np.unique(labels), y=labels)
-#criterion = nn.CrossEntropyLoss(weight=torch.tensor(class_weights, dtype=torch.float32).to(device))
+criterion = nn.CrossEntropyLoss(weight=torch.tensor(class_weights, dtype=torch.float32).to(device))
 
-# Loss, ottimizzatore e scheduler
-criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
 
@@ -128,6 +107,8 @@ train_losses = []
 val_losses = []
 train_accuracies = []
 val_accuracies = []
+early_stop_patience = 10  # Numero di epoche senza miglioramento prima di fermare
+epochs_no_improve = 0
 
 for epoch in range(NUM_EPOCHS):
     train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, device)
@@ -143,7 +124,16 @@ for epoch in range(NUM_EPOCHS):
         best_val_loss = val_loss
         torch.save(model.state_dict(), MODEL_NAME)
         print(f"✅ Modello salvato a epoch {epoch+1} con val_loss {val_loss:.4f}")
+        epochs_no_improve = 0
+    else:
+        epochs_no_improve += 1
+        print(f"⚠️ Nessun miglioramento val_loss da {epochs_no_improve} epoche.")
 
+    # Early stopping
+    if epochs_no_improve >= early_stop_patience:
+        print(f"⏹️ Early stopping: nessun miglioramento su val_loss per {early_stop_patience} epoche.")
+        break
+    
 # Valutazione finale sul test set
 test_loss, test_acc = validate(model, test_loader, criterion, device)
 print(f"Test accuracy: {test_acc:.2f}")

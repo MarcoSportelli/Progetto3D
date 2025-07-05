@@ -3,9 +3,8 @@ import numpy as np
 import time
 import os
 from models.model import PoseTransformer3D
-from models.dataset import normalize_skeleton, align_pose_down, rotation_matrix_z
+from models.dataset import normalize_skeleton
 import json
-import cv2  # Importa OpenCV
 
 LABEL_MAP = {
     'flessione_indietro': 0,
@@ -15,16 +14,13 @@ LABEL_MAP = {
 }
 
 
-
-
-
 SEQ_LEN = 50
 INPUT_FEATURE_SIZE = 5 * 3  
 # Ottieni la directory dove si trova questo script
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Percorsi assoluti
-MODEL_PATH = os.path.join(BASE_DIR, "model_weights_final_v2.pt")
+MODEL_PATH = os.path.join(BASE_DIR, "model_weights_final_v3.pt")
 WATCH_DIR = os.path.abspath(os.path.join(BASE_DIR, "../incoming_data"))
 PREDICTION_DIR = os.path.abspath(os.path.join(BASE_DIR, "../prediction"))
 PREDICTION_JSON = os.path.join(PREDICTION_DIR, "prediction.json")
@@ -52,7 +48,6 @@ def preprocess(data):
     else:
         print(f"✅ Sequenza già di lunghezza {SEQ_LEN}")
      
-    #data = align_pose_down(data)
     data = normalize_skeleton(data)
 
     mean = data.mean(axis=(0, 1), keepdims=True)
