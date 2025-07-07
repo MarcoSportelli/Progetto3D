@@ -90,7 +90,6 @@ try:
         color_image = np.asanyarray(color_frame.get_data())
         depth_image = np.asanyarray(depth_frame.get_data())
 
-        # === Maschera depth (0-3000mm) ===
         depth_in_mm = depth_image.astype(np.uint16)
         mask = np.where((depth_in_mm > 0) & (depth_in_mm < 3000), 255, 0).astype(np.uint8)
         kernel = np.ones((5, 5), np.uint8)
@@ -108,15 +107,14 @@ try:
                 lm = results.pose_landmarks.landmark[idx]
                 cx, cy = int(lm.x * w), int(lm.y * h)
               
-                # Prendi la profondità reale dalla depth map (in metri)
                 if 0 <= cy < depth_in_mm.shape[0] and 0 <= cx < depth_in_mm.shape[1]:
-                    real_z = depth_in_mm[cy, cx] / 1000.0  # da mm a metri
+                    real_z = depth_in_mm[cy, cx] / 1000.0 
                     if real_z == 0:
-                        real_z = float(lm.z)  # fallback se la depth è nulla
+                        real_z = float(lm.z) 
                 else:
-                    real_z = float(lm.z)  # fallback se out of bounds
-                    
-                frame_landmarks.append([lm.x, lm.y, lm.z])  # Usa solo lm.z, ignora la profondità reale
+                    real_z = float(lm.z) 
+
+                frame_landmarks.append([lm.x, lm.y, real_z])  
                 if verbose:
                     cv2.circle(color_image, (cx, cy), 6, (0, 255, 0), -1)
 
